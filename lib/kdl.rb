@@ -1,6 +1,11 @@
 require "kdl/version"
+require "kdl/value"
+require "kdl/node"
 
-module Kdl
+module KDL
   class Error < StandardError; end
-  # Your code goes here...
+  
+  def self.parse_document(document)
+    []
+  end
 end
