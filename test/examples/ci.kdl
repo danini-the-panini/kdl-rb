@@ -1,5 +1,4 @@
 // This example is a GitHub Action if it used KDL syntax.
-// See .github/workflows/ci.yml for the file this was based on.
 name "CI"
 
 on "push" "pull_request"

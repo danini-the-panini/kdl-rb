@@ -47,7 +47,7 @@ class ExamplesTest < Minitest::Test
         }
       }
     }
-    assert_equal nodes, doc
+    assert_equal nodes.to_s, doc.to_s
   end
 
   def test_cargo
@@ -66,7 +66,7 @@ class ExamplesTest < Minitest::Test
         thiserror "1.0.22"
       }
     }
-    assert_equal nodes, doc
+    assert_equal nodes.to_s, doc.to_s
   end
 
   private
@@ -74,7 +74,7 @@ class ExamplesTest < Minitest::Test
   # Helper for constructing nodes
   # Basically a Ruby DSL that looks a bit like KDL
   def nodes!(&block)
-    Nodes.nodes!(&block)
+    ::KDL::Document.new(Nodes.nodes!(&block))
   end
 
   class Nodes < BasicObject
