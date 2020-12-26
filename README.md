@@ -23,7 +23,7 @@ Or install it yourself as:
 ```ruby
 require 'kdl'
 
-KDL::Parser.new.parse(a_string) #=> KDL::Document
+KDL.parse_document(a_string) #=> KDL::Document
 ```
 
 ## Development
