@@ -289,7 +289,7 @@ module KDL
     end
 
     def convert_escapes(string)
-      string.gsub(/\\./) do |m|
+      string.gsub(/\\[^u]/) do |m|
         case m
         when '\n' then "\n"
         when '\r' then "\r"
@@ -300,8 +300,13 @@ module KDL
         when '\f' then "\f"
         else m[1]
         end
+      end.gsub(/\\u([0-9a-fA-F]{0,6})/) do |m|
+        i = Integer(m[2..], 16)
+        if i < 0 || i > 0x10FFFF
+          raise Error, "Invalid code point #{u}"
+        end
+        i.chr(Encoding::UTF_8)
       end
-      # TODO: unicode char codes, e.g. \\u[0-9a-fA-F]{0,6}
     end
   end
 end

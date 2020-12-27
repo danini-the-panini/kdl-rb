@@ -183,4 +183,16 @@ class ParserTest < Minitest::Test
     }
     assert_equal nodes, doc
   end
+
+  def test_escaping
+    doc = @parser.parse <<~KDL
+      node1 "\\u1f600"
+      node2 "\\n\\t\\r\\\\\\"\\f\\b"
+    KDL
+    nodes = nodes! {
+      node1 "😀"
+      node2 "\n\t\r\\\"\f\b"
+    }
+    assert_equal nodes, doc
+  end
 end
