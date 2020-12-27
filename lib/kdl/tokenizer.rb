@@ -6,6 +6,7 @@ module KDL
       '{' => :LPAREN,
       '}' => :RPAREN,
       '=' => :EQUALS,
+      '＝' => :EQUALS,
       ';' => :SEMICOLON
     }
 
@@ -109,7 +110,7 @@ module KDL
           end
         when :ident
           case c
-          when /[\s=]/, nil
+          when /[\s=＝]/, nil
             case @buffer
             when 'true'  then return [:TRUE, true]
             when 'false' then return [:FALSE, false]

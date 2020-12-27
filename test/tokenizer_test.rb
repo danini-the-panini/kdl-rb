@@ -50,28 +50,54 @@ class TokenizerTest < Minitest::Test
   def test_multiple_tokens
     tokenizer = ::KDL::Tokenizer.new("node 1 \"two\" a=3")
 
-    assert_equal([:IDENT, 'node'], tokenizer.next_token)
-    assert_equal([:WS, ' '], tokenizer.next_token)
-    assert_equal([:INTEGER, 1], tokenizer.next_token)
-    assert_equal([:WS, ' '], tokenizer.next_token)
-    assert_equal([:STRING, 'two'], tokenizer.next_token)
-    assert_equal([:WS, ' '], tokenizer.next_token)
-    assert_equal([:IDENT, 'a'], tokenizer.next_token)
-    assert_equal([:EQUALS, '='], tokenizer.next_token)
-    assert_equal([:INTEGER, 3], tokenizer.next_token)
-    assert_equal([:EOF, ''], tokenizer.next_token)
-    assert_equal([false, false], tokenizer.next_token)
+    assert_equal [:IDENT, 'node'], tokenizer.next_token
+    assert_equal [:WS, ' '], tokenizer.next_token
+    assert_equal [:INTEGER, 1], tokenizer.next_token
+    assert_equal [:WS, ' '], tokenizer.next_token
+    assert_equal [:STRING, 'two'], tokenizer.next_token
+    assert_equal [:WS, ' '], tokenizer.next_token
+    assert_equal [:IDENT, 'a'], tokenizer.next_token
+    assert_equal [:EQUALS, '='], tokenizer.next_token
+    assert_equal [:INTEGER, 3], tokenizer.next_token
+    assert_equal [:EOF, ''], tokenizer.next_token
+    assert_equal [false, false], tokenizer.next_token
   end
 
   def test_multiline_comment
     tokenizer = ::KDL::Tokenizer.new("foo /*bar=1*/ baz=2")
 
-    assert_equal([:IDENT, 'foo'], tokenizer.next_token)
-    assert_equal([:WS, '  '], tokenizer.next_token)
-    assert_equal([:IDENT, 'baz'], tokenizer.next_token)
-    assert_equal([:EQUALS, '='], tokenizer.next_token)
-    assert_equal([:INTEGER, 2], tokenizer.next_token)
-    assert_equal([:EOF, ''], tokenizer.next_token)
-    assert_equal([false, false], tokenizer.next_token)
+    assert_equal [:IDENT, 'foo'], tokenizer.next_token
+    assert_equal [:WS, '  '], tokenizer.next_token
+    assert_equal [:IDENT, 'baz'], tokenizer.next_token
+    assert_equal [:EQUALS, '='], tokenizer.next_token
+    assert_equal [:INTEGER, 2], tokenizer.next_token
+    assert_equal [:EOF, ''], tokenizer.next_token
+    assert_equal [false, false], tokenizer.next_token
+  end
+
+  def test_utf8
+    # assert_equal [:IDENT, '😁'], ::KDL::Tokenizer.new("😁").next_token
+    # assert_equal [:STRING, '😁'], ::KDL::Tokenizer.new('"😁"').next_token
+    # assert_equal [:IDENT, 'ノード'], ::KDL::Tokenizer.new('ノード').next_token
+    # assert_equal [:IDENT, 'お名前'], ::KDL::Tokenizer.new('お名前').next_token
+    # assert_equal [:STRING, '☜(ﾟヮﾟ☜)'], ::KDL::Tokenizer.new('"☜(ﾟヮﾟ☜)"').next_token
+
+    tokenizer = ::KDL::Tokenizer.new <<~KDL
+      smile "😁"
+      ノード お名前＝"☜(ﾟヮﾟ☜)"
+    KDL
+
+    assert_equal [:IDENT, 'smile'], tokenizer.next_token
+    assert_equal [:WS, ' '], tokenizer.next_token
+    assert_equal [:STRING, '😁'], tokenizer.next_token
+    assert_equal [:NEWLINE, "\n"], tokenizer.next_token
+    assert_equal [:IDENT, 'ノード'], tokenizer.next_token
+    assert_equal [:WS, ' '], tokenizer.next_token
+    assert_equal [:IDENT, 'お名前'], tokenizer.next_token
+    assert_equal [:EQUALS, '＝'], tokenizer.next_token
+    assert_equal [:STRING, '☜(ﾟヮﾟ☜)'], tokenizer.next_token
+    assert_equal [:NEWLINE, "\n"], tokenizer.next_token
+    assert_equal [:EOF, ''], tokenizer.next_token
+    assert_equal [false, false], tokenizer.next_token
   end
 end
