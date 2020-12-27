@@ -68,4 +68,11 @@ class ExamplesTest < Minitest::Test
     }
     assert_equal nodes, doc
   end
+
+  def test_nuget
+    doc = ::KDL.parse_document(File.read(File.join(__dir__, 'examples/nuget.kdl')))
+    # This file is particularly large. It would be nice to validate it, but for now
+    # I'm just going to settle for making sure it parses.
+    refute_nil doc
+  end
 end
