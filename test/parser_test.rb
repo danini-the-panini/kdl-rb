@@ -147,7 +147,7 @@ class ParserTest < Minitest::Test
 
   def test_multiline_nodes
     doc = @parser.parse <<~KDL
-      title \
+      title \\
         "Some title"
     KDL
     nodes = nodes! {

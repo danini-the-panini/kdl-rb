@@ -2,6 +2,8 @@ module KDL
   class Tokenizer
     class Error < StandardError; end
 
+    attr_reader :index
+
     SYMBOLS = {
       '{' => :LPAREN,
       '}' => :RPAREN,
@@ -10,11 +12,11 @@ module KDL
       ';' => :SEMICOLON
     }
 
-    def initialize(str)
+    def initialize(str, start = 0)
       @str = str
       @context = nil
       @rawstring_hashes = nil
-      @index = 0
+      @index = start
       @buffer = ""
       @done = false
       @previous_context = nil
@@ -70,6 +72,14 @@ module KDL
               self.context = :decimal
               @index += 1
               @buffer = c
+            end
+          when '\\'
+            t = Tokenizer.new(@str, @index + 1)
+            la = t.next_token[0]
+            if la == :NEWLINE || (la == :WS && t.next_token[0] == :NEWLINE)
+              @index = t.index
+            else
+              raise Error, "Unexpected '\\'"
             end
           when *SYMBOLS.keys
             @index += 1
@@ -191,7 +201,10 @@ module KDL
         when :single_line_comment
           @index += 1
           if c == "\n"
-            self.context = nil
+            return [:NEWLINE, c]
+          elsif c.nil?
+            @done = true
+            return [:EOF, '']
           end
         when :multi_line_comment
           if c == '/' && @str[@index + 1] == '*'
@@ -207,9 +220,17 @@ module KDL
             @index += 1
           end
         when :whitespace
-          if c == " " || c == "\t"
+          if c&.match?(/[ \t]/)
             @index += 1
             @buffer += c
+          elsif c == "\\"
+            t = Tokenizer.new(@str, @index + 1)
+            la = t.next_token[0]
+            if la == :NEWLINE || (la == :WS && t.next_token[0] == :NEWLINE)
+              @index = t.index
+            else
+              raise Error, "Unexpected '\\'"
+            end
           elsif c == "/" && @str[@index + 1] == '*'
             self.context = :multi_line_comment
             @comment_nesting = 1

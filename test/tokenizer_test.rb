@@ -73,6 +73,24 @@ class TokenizerTest < Minitest::Test
     assert_equal [false, false], tokenizer.next_token
   end
 
+  def test_single_line_comment
+    assert_equal [:EOF, ''], ::KDL::Tokenizer.new("// comment").next_token
+
+    tokenizer = ::KDL::Tokenizer.new <<~KDL
+      node1
+      // comment
+      node2
+    KDL
+
+    assert_equal [:IDENT, 'node1'], tokenizer.next_token
+    assert_equal [:NEWLINE, "\n"], tokenizer.next_token
+    assert_equal [:NEWLINE, "\n"], tokenizer.next_token
+    assert_equal [:IDENT, 'node2'], tokenizer.next_token
+    assert_equal [:NEWLINE, "\n"], tokenizer.next_token
+    assert_equal [:EOF, ''], tokenizer.next_token
+    assert_equal [false, false], tokenizer.next_token
+  end
+
   def test_multiline_comment
     tokenizer = ::KDL::Tokenizer.new("foo /*bar=1*/ baz=2")
 
@@ -147,6 +165,20 @@ class TokenizerTest < Minitest::Test
     assert_equal [:IDENT, 'a'], tokenizer.next_token
     assert_equal [:NEWLINE, "\n"], tokenizer.next_token
     assert_equal [:RPAREN, '}'], tokenizer.next_token
+    assert_equal [:NEWLINE, "\n"], tokenizer.next_token
+    assert_equal [:EOF, ''], tokenizer.next_token
+    assert_equal [false, false], tokenizer.next_token
+  end
+
+  def test_multiline_nodes
+    tokenizer = ::KDL::Tokenizer.new <<~KDL
+      title \\
+        "Some title"
+    KDL
+
+    assert_equal [:IDENT, 'title'], tokenizer.next_token
+    assert_equal [:WS, '   '], tokenizer.next_token
+    assert_equal [:STRING, 'Some title'], tokenizer.next_token
     assert_equal [:NEWLINE, "\n"], tokenizer.next_token
     assert_equal [:EOF, ''], tokenizer.next_token
     assert_equal [false, false], tokenizer.next_token
