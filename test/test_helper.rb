@@ -23,8 +23,8 @@ class Minitest::Test
     def method_missing(name, *args, **kwargs, &block)
       node = ::KDL::Node.new(name.to_s,
                              args.map { |a| ::KDL::Value.from(a) },
-                             kwargs.transform_keys(&:to_s)
-                                   .transform_values { |a| ::KDL::Value.from(a) })
+                             kwargs.map { |k, v| [k.to_s, ::KDL::Value.from(v) ]}
+                                   .to_h)
       node.children = Nodes.nodes!(&block) if block
       @children << node
     end
