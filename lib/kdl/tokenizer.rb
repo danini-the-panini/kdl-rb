@@ -72,7 +72,7 @@ module KDL
             @index += 1
           when /[0-9\-+]/
             n = @str[@index + 1]
-            if c == '0' && n&.match?(/[box]/)
+            if c == '0' && n =~ /[box]/
               @index += 2
               @buffer = ''
               self.context = case n
@@ -278,7 +278,7 @@ module KDL
     private
 
     def parse_decimal(s)
-      return [:FLOAT, Float(munch_underscores(s))] if s.match?(/[.eE]/)
+      return [:FLOAT, Float(munch_underscores(s))] if s =~ /[.eE]/
       [:INTEGER, Integer(munch_underscores(s), 10)]
     end
     
