@@ -110,4 +110,15 @@ class TokenizerTest < Minitest::Test
     assert_equal [:EOF, ''], tokenizer.next_token
     assert_equal [false, false], tokenizer.next_token
   end
+
+  def test_semicolon
+    tokenizer = ::KDL::Tokenizer.new 'node1; node2'
+
+    assert_equal [:IDENT, 'node1'], tokenizer.next_token
+    assert_equal [:SEMICOLON, ';'], tokenizer.next_token
+    assert_equal [:WS, ' '], tokenizer.next_token
+    assert_equal [:IDENT, 'node2'], tokenizer.next_token
+    assert_equal [:EOF, ''], tokenizer.next_token
+    assert_equal [false, false], tokenizer.next_token
+  end
 end

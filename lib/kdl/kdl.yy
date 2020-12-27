@@ -20,7 +20,8 @@ rule
   node      : node_decl node_term               { val[0] }
             | node_decl node_children node_term { val[0].tap { |x| x.children = val[1] } }
   node_children: ws_star LPAREN nodes RPAREN { val[2] }
-  node_term: linespaces | SEMICOLON
+  node_term: linespaces | semicolon_term
+  semicolon_term: SEMICOLON | SEMICOLON linespaces
 
   identifier: IDENT  { val[0] }
             | STRING { val[0] }
