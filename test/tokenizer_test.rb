@@ -76,11 +76,11 @@ class TokenizerTest < Minitest::Test
   end
 
   def test_utf8
-    # assert_equal [:IDENT, '😁'], ::KDL::Tokenizer.new("😁").next_token
-    # assert_equal [:STRING, '😁'], ::KDL::Tokenizer.new('"😁"').next_token
-    # assert_equal [:IDENT, 'ノード'], ::KDL::Tokenizer.new('ノード').next_token
-    # assert_equal [:IDENT, 'お名前'], ::KDL::Tokenizer.new('お名前').next_token
-    # assert_equal [:STRING, '☜(ﾟヮﾟ☜)'], ::KDL::Tokenizer.new('"☜(ﾟヮﾟ☜)"').next_token
+    assert_equal [:IDENT, '😁'], ::KDL::Tokenizer.new("😁").next_token
+    assert_equal [:STRING, '😁'], ::KDL::Tokenizer.new('"😁"').next_token
+    assert_equal [:IDENT, 'ノード'], ::KDL::Tokenizer.new('ノード').next_token
+    assert_equal [:IDENT, 'お名前'], ::KDL::Tokenizer.new('お名前').next_token
+    assert_equal [:STRING, '☜(ﾟヮﾟ☜)'], ::KDL::Tokenizer.new('"☜(ﾟヮﾟ☜)"').next_token
 
     tokenizer = ::KDL::Tokenizer.new <<~KDL
       smile "😁"
