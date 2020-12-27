@@ -20,7 +20,7 @@ module KDL
 
     NEWLINES = ["\u000A", "\u0085", "\u000C", "\u2028", "\u2029"]
 
-    NON_IDENTIFIER_CHARS = Regexp.escape "#{SYMBOLS.keys.join('')}\\<>\[\]\","
+    NON_IDENTIFIER_CHARS = Regexp.escape "#{SYMBOLS.keys.join('')}\\<>[]\","
     IDENTIFIER_CHARS = /[^#{NON_IDENTIFIER_CHARS}\x0-\x20]/
     INITIAL_IDENTIFIER_CHARS = /[^#{NON_IDENTIFIER_CHARS}0-9\x0-\x20]/
 
