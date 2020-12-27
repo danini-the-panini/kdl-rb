@@ -173,7 +173,7 @@ class ParserTest < Minitest::Test
       foo123~!@#$%^&*.:'|/?+ "weeee"
     KDL
     nodes = nodes! {
-      _ "!@#$@$%Q#$%~@!40" "1.2.3", "!!!!!": true
+      _ "!@#$@$%Q#$%~@!40", "1.2.3", "!!!!!": true
       _ "foo123~!@#$%^&*.:'|/?+", "weeee"
     }
     assert_equal nodes.to_s, doc.to_s
