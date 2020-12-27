@@ -16,17 +16,19 @@ module KDL
       @index = 0
       @buffer = ""
       @done = false
+      @previous_context = nil
     end
 
     def next_token
       @context = nil
+      @previous_context = nil
       loop do
         c = @str[@index]
         case @context
         when nil
           case c
           when '"'
-            @context = :string
+            self.context = :string
             @buffer = ''
             @index += 1
           when 'r'
@@ -38,12 +40,12 @@ module KDL
                 i += 1
               end
               if @str[i] == '"'
-                @context = :rawstring
+                self.context = :rawstring
                 @index = i + 1
                 next
               end
             end
-            @context = :ident
+            self.context = :ident
             @buffer = c
             @index += 1
           when /[0-9\-+]/
@@ -51,13 +53,13 @@ module KDL
             if c == '0' && n.match?(/[box]/)
               @index += 2
               @buffer = ''
-              @context = case n
+              self.context = case n
                          when 'b' then :binary
                          when 'o' then :octal
                          when 'x' then :hexadecimal
                          end
             else
-              @context = :decimal
+              self.context = :decimal
               @index += 1
               @buffer = c
             end
@@ -75,15 +77,19 @@ module KDL
             end
           when "/"
             if @str[@index + 1] == '/'
-              @context = :single_line_comment
-              @index += 1
+              self.context = :single_line_comment
+              @index += 2
+            elsif @str[@index + 1] == '*'
+              self.context = :multi_line_comment
+              @comment_nesting = 1
+              @index += 2
             else
-              @context = :ident
+              self.context = :ident
               @buffer = c
               @index += 1
             end
           when " ", "\t"
-            @context = :whitespace
+            self.context = :whitespace
             @buffer = c
             @index += 1
           when nil
@@ -91,7 +97,7 @@ module KDL
             @done = true
             return [:EOF, '']
           else
-            @context = :ident
+            self.context = :ident
             @buffer = c
             @index += 1
           end
@@ -174,18 +180,44 @@ module KDL
         when :single_line_comment
           @index += 1
           if c == "\n"
-            @context = nil
+            self.context = nil
+          end
+        when :multi_line_comment
+          if c == '/' && @str[@index + 1] == '*'
+            @comment_nesting += 1
+            @index += 2
+          elsif c == '*' && @str[@index + 1] == '/'
+            @comment_nesting -= 1
+            @index += 2
+            if @comment_nesting == 0
+              revert_context
+            end
+          else
+            @index += 1
           end
         when :whitespace
-          case c
-          when " ", "\t"
+          if c == " " || c == "\t"
             @index += 1
             @buffer += c
+          elsif c == "/" && @str[@index + 1] == '*'
+            self.context = :multi_line_comment
+            @comment_nesting = 1
+            @index += 2
           else
             return [:WS, @buffer]
           end
         end
       end
+    end
+
+    def context=(val)
+      @previous_context = @context
+      @context = val
+    end
+
+    def revert_context
+      @context = @previous_context
+      @previous_context = nil
     end
 
     private

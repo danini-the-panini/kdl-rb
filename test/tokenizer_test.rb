@@ -62,4 +62,16 @@ class TokenizerTest < Minitest::Test
     assert_equal([:EOF, ''], tokenizer.next_token)
     assert_equal([false, false], tokenizer.next_token)
   end
+
+  def test_multiline_comment
+    tokenizer = ::KDL::Tokenizer.new("foo /*bar=1*/ baz=2")
+
+    assert_equal([:IDENT, 'foo'], tokenizer.next_token)
+    assert_equal([:WS, '  '], tokenizer.next_token)
+    assert_equal([:IDENT, 'baz'], tokenizer.next_token)
+    assert_equal([:EQUALS, '='], tokenizer.next_token)
+    assert_equal([:INTEGER, 2], tokenizer.next_token)
+    assert_equal([:EOF, ''], tokenizer.next_token)
+    assert_equal([false, false], tokenizer.next_token)
+  end
 end
