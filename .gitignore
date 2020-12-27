@@ -7,4 +7,6 @@
 /spec/reports/
 /tmp/
 
+Gemfile.lock
+
 lib/kdl/kdl.tab.rb
