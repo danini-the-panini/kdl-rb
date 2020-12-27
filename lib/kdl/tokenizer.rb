@@ -32,7 +32,13 @@ module KDL
             @buffer = ''
             @index += 1
           when 'r'
-            if @str[@index + 1] == '#'
+            if @str[@index + 1] == '"'
+              self.context = :rawstring
+              @index += 2
+              @rawstring_hashes = 0
+              @buffer = ''
+              next
+            elsif @str[@index + 1] == '#'
               i = @index + 1
               @rawstring_hashes = 0
               while @str[i] == '#'
@@ -132,7 +138,7 @@ module KDL
         when :rawstring
           raise Error, "Unterminated rawstring literal" if c.nil?
 
-          if c == '"' && @str[@index + 1] == '#'
+          if c == '"'
             h = 0
             while @str[@index + 1 + h] == '#' && h < @rawstring_hashes
               h += 1
