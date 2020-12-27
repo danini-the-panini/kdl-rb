@@ -12,6 +12,18 @@ module KDL
       ';' => :SEMICOLON
     }
 
+    WHITEPACE = ["\u0009", "\u0020", "\u00A0", "\u1680",
+                 "\u2000", "\u2001", "\u2002", "\u2003",
+                 "\u2004", "\u2005", "\u2006", "\u2007",
+                 "\u2008", "\u2009", "\u200A", "\u202F",
+                 "\u205F", "\u3000" ]
+
+    NEWLINES = ["\u000A", "\u0085", "\u000C", "\u2028", "\u2029"]
+
+    NON_IDENTIFIER_CHARS = Regexp.escape "#{SYMBOLS.keys.join('')}\\<>\[\]\","
+    IDENTIFIER_CHARS = /[^#{NON_IDENTIFIER_CHARS}\x0-\x20]/
+    INITIAL_IDENTIFIER_CHARS = /[^#{NON_IDENTIFIER_CHARS}0-9\x0-\x20]/
+
     def initialize(str, start = 0)
       @str = str
       @context = nil
@@ -84,15 +96,18 @@ module KDL
           when *SYMBOLS.keys
             @index += 1
             return [SYMBOLS[c], c]
-          when "\n"
-            @index += 1
-            return [:NEWLINE, c]
           when "\r"
             n = @str[@index + 1]
             if n == "\n"
               @index += 2
               return [:NEWLINE, "#{c}#{n}"]
+            else
+              @index += 1
+              return [:NEWLINE, c]
             end
+          when *NEWLINES
+            @index += 1
+            return [:NEWLINE, c]
           when "/"
             if @str[@index + 1] == '/'
               self.context = :single_line_comment
@@ -109,7 +124,7 @@ module KDL
               @buffer = c
               @index += 1
             end
-          when " ", "\t"
+          when *WHITEPACE
             self.context = :whitespace
             @buffer = c
             @index += 1
@@ -117,23 +132,25 @@ module KDL
             return [false, false] if @done
             @done = true
             return [:EOF, '']
-          else
+          when INITIAL_IDENTIFIER_CHARS
             self.context = :ident
             @buffer = c
             @index += 1
+          else
+            raise Error, "Unexpected character #{c.inspect}"
           end
         when :ident
           case c
-          when /[\s=＝;]/, nil
+          when IDENTIFIER_CHARS
+            @index += 1
+            @buffer += c
+          else
             case @buffer
             when 'true'  then return [:TRUE, true]
             when 'false' then return [:FALSE, false]
             when 'null'  then return [:NULL, nil]
             else return [:IDENT, @buffer]
             end
-          else
-            @index += 1
-            @buffer += c
           end
         when :string
           case c
@@ -220,7 +237,7 @@ module KDL
             @index += 1
           end
         when :whitespace
-          if c&.match?(/[ \t]/)
+          if WHITEPACE.include?(c)
             @index += 1
             @buffer += c
           elsif c == "\\"
@@ -275,8 +292,10 @@ module KDL
       string.gsub(/\\./) do |m|
         case m
         when '\n' then "\n"
-        when '\t' then "\t"
         when '\r' then "\r"
+        when '\t' then "\t"
+        when '\\\\' then "\\"
+        when '\"' then "\""
         when '\b' then "\b"
         when '\f' then "\f"
         else m[1]
