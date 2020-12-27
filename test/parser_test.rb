@@ -138,6 +138,7 @@ class ParserTest < Minitest::Test
         b
       }
     KDL
+
     nodes = nodes! {
       mynode "not commented"
     }

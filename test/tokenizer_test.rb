@@ -121,4 +121,34 @@ class TokenizerTest < Minitest::Test
     assert_equal [:EOF, ''], tokenizer.next_token
     assert_equal [false, false], tokenizer.next_token
   end
+
+  def test_slash_dash
+    tokenizer = ::KDL::Tokenizer.new <<~KDL
+      /-mynode /-"foo" /-key=1 /-{
+        a
+      }
+    KDL
+
+    assert_equal [:SLASHDASH, '/-'], tokenizer.next_token
+    assert_equal [:IDENT, 'mynode'], tokenizer.next_token
+    assert_equal [:WS, ' '], tokenizer.next_token
+    assert_equal [:SLASHDASH, '/-'], tokenizer.next_token
+    assert_equal [:STRING, 'foo'], tokenizer.next_token
+    assert_equal [:WS, ' '], tokenizer.next_token
+    assert_equal [:SLASHDASH, '/-'], tokenizer.next_token
+    assert_equal [:IDENT, 'key'], tokenizer.next_token
+    assert_equal [:EQUALS, '='], tokenizer.next_token
+    assert_equal [:INTEGER, 1], tokenizer.next_token
+    assert_equal [:WS, ' '], tokenizer.next_token
+    assert_equal [:SLASHDASH, '/-'], tokenizer.next_token
+    assert_equal [:LPAREN, '{'], tokenizer.next_token
+    assert_equal [:NEWLINE, "\n"], tokenizer.next_token
+    assert_equal [:WS, '  '], tokenizer.next_token
+    assert_equal [:IDENT, 'a'], tokenizer.next_token
+    assert_equal [:NEWLINE, "\n"], tokenizer.next_token
+    assert_equal [:RPAREN, '}'], tokenizer.next_token
+    assert_equal [:NEWLINE, "\n"], tokenizer.next_token
+    assert_equal [:EOF, ''], tokenizer.next_token
+    assert_equal [false, false], tokenizer.next_token
+  end
 end

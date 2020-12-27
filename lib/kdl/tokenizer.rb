@@ -91,6 +91,9 @@ module KDL
               self.context = :multi_line_comment
               @comment_nesting = 1
               @index += 2
+            elsif @str[@index + 1] == '-'
+              @index += 2
+              return [:SLASHDASH, '/-']
             else
               self.context = :ident
               @buffer = c
