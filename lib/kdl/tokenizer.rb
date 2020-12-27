@@ -72,7 +72,7 @@ module KDL
             @index += 1
           when /[0-9\-+]/
             n = @str[@index + 1]
-            if c == '0' && n.match?(/[box]/)
+            if c == '0' && n&.match?(/[box]/)
               @index += 2
               @buffer = ''
               self.context = case n
@@ -88,7 +88,9 @@ module KDL
           when '\\'
             t = Tokenizer.new(@str, @index + 1)
             la = t.next_token[0]
-            if la == :NEWLINE || (la == :WS && t.next_token[0] == :NEWLINE)
+            if la == :NEWLINE
+              @index = t.index
+            elsif la == :WS && (lan = t.next_token[0]) == :NEWLINE
               @index = t.index
             else
               raise Error, "Unexpected '\\'"
@@ -216,12 +218,14 @@ module KDL
             return parse_binary(@buffer)
           end
         when :single_line_comment
-          @index += 1
-          if c == "\n"
-            return [:NEWLINE, c]
+          if NEWLINES.include?(c) || c == "\r"
+            self.context = nil
+            next
           elsif c.nil?
             @done = true
             return [:EOF, '']
+          else
+            @index += 1
           end
         when :multi_line_comment
           if c == '/' && @str[@index + 1] == '*'
@@ -243,7 +247,9 @@ module KDL
           elsif c == "\\"
             t = Tokenizer.new(@str, @index + 1)
             la = t.next_token[0]
-            if la == :NEWLINE || (la == :WS && t.next_token[0] == :NEWLINE)
+            if la == :NEWLINE
+              @index = t.index
+            elsif (la == :WS && (lan = t.next_token[0]) == :NEWLINE)
               @index = t.index
             else
               raise Error, "Unexpected '\\'"
@@ -272,20 +278,24 @@ module KDL
     private
 
     def parse_decimal(s)
-      return [:FLOAT, Float(s)] if s.match?(/[.eE]/)
-      [:INTEGER, Integer(s)]
+      return [:FLOAT, Float(munch_underscores(s))] if s.match?(/[.eE]/)
+      [:INTEGER, Integer(munch_underscores(s), 10)]
     end
     
     def parse_hexadecimal(s)
-      [:INTEGER, Integer(s, 16)]
+      [:INTEGER, Integer(munch_underscores(s), 16)]
     end
     
     def parse_octal(s)
-      [:INTEGER, Integer(s, 8)]
+      [:INTEGER, Integer(munch_underscores(s), 8)]
     end
     
     def parse_binary(s)
-      [:INTEGER, Integer(s, 2)]
+      [:INTEGER, Integer(munch_underscores(s), 2)]
+    end
+
+    def munch_underscores(s)
+      s.chomp('_').squeeze('_')
     end
 
     def convert_escapes(string)
@@ -298,10 +308,10 @@ module KDL
         when '\"' then "\""
         when '\b' then "\b"
         when '\f' then "\f"
-        else m[1]
+        else raise Error, "Unexpected escape #{m.inspect}"
         end
-      end.gsub(/\\u([0-9a-fA-F]{0,6})/) do |m|
-        i = Integer(m[2..], 16)
+      end.gsub(/\\u\{[0-9a-fA-F]{0,6}\}/) do |m|
+        i = Integer(m[3..-2], 16)
         if i < 0 || i > 0x10FFFF
           raise Error, "Invalid code point #{u}"
         end

@@ -11,6 +11,7 @@ class KDL::Parser
         SLASHDASH
 rule
   document  : nodes { KDL::Document.new(val[0]) }
+            | linespaces { KDL::Document.new([])}
 
   nodes     : none                      { [] }
             | linespace_star node       { [val[1]] }
@@ -48,7 +49,7 @@ rule
           | FALSE { false }
 
   ws_star: none | WS
-  linespace: NEWLINE | EOF | WS
+  linespace: WS | NEWLINE | EOF
   linespaces: linespace | linespaces linespace
   linespace_star: none | linespaces
 
