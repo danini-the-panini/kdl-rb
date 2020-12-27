@@ -21,7 +21,7 @@ class Minitest::Test
     end
 
     def method_missing(name, *args, **kwargs, &block)
-      node = ::KDL::Node.new(name,
+      node = ::KDL::Node.new(name.to_s,
                              args.map { |a| ::KDL::Value.from(a) },
                              kwargs.transform_keys(&:to_s)
                                    .transform_values { |a| ::KDL::Value.from(a) })

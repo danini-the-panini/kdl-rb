@@ -49,6 +49,7 @@ module KDL
               if @str[i] == '"'
                 self.context = :rawstring
                 @index = i + 1
+                @buffer = ''
                 next
               end
             end

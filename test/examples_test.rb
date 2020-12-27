@@ -47,7 +47,7 @@ class ExamplesTest < Minitest::Test
         }
       }
     }
-    assert_equal nodes.to_s, doc.to_s
+    assert_equal nodes, doc
   end
 
   def test_cargo
@@ -66,6 +66,6 @@ class ExamplesTest < Minitest::Test
         thiserror "1.0.22"
       }
     }
-    assert_equal nodes.to_s, doc.to_s
+    assert_equal nodes, doc
   end
 end

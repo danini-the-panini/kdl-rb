@@ -12,10 +12,20 @@ class TokenizerTest < Minitest::Test
   end
 
   def test_rawstring
-    assert_equal [:RAWSTRING, "foo\\nbar"], ::KDL::Tokenizer.new('r"foo\nbar"').next_token
+    assert_equal [:RAWSTRING, "foo\\nbar"], ::KDL::Tokenizer.new('r"foo\\nbar"').next_token
     assert_equal [:RAWSTRING, "foo\"bar"], ::KDL::Tokenizer.new('r#"foo"bar"#').next_token
     assert_equal [:RAWSTRING, "foo\"#bar"], ::KDL::Tokenizer.new('r##"foo"#bar"##').next_token
     assert_equal [:RAWSTRING, "\"foo\""], ::KDL::Tokenizer.new('r#""foo""#').next_token
+
+    tokenizer = ::KDL::Tokenizer.new('node r"C:\\Users\\zkat\\"')
+    assert_equal [:IDENT, "node"], tokenizer.next_token
+    assert_equal [:WS, " "], tokenizer.next_token
+    assert_equal [:RAWSTRING, "C:\\Users\\zkat\\"], tokenizer.next_token
+
+    tokenizer = ::KDL::Tokenizer.new('other-node r#"hello"world"#')
+    assert_equal [:IDENT, "other-node"], tokenizer.next_token
+    assert_equal [:WS, " "], tokenizer.next_token
+    assert_equal [:RAWSTRING, "hello\"world"], tokenizer.next_token
   end
 
   def test_integer

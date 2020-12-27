@@ -10,7 +10,7 @@ class ParserTest < Minitest::Test
     nodes = nodes! {
       title "Hello, World"
     }
-    assert_equal nodes.to_s, doc.to_s
+    assert_equal nodes, doc
   end
 
   def test_multiple_values
@@ -18,7 +18,7 @@ class ParserTest < Minitest::Test
     nodes = nodes! {
       bookmarks 12, 15, 188, 1234
     }
-    assert_equal nodes.to_s, doc.to_s
+    assert_equal nodes, doc
   end
 
   def test_properties
@@ -30,7 +30,7 @@ class ParserTest < Minitest::Test
       author "Alex Monad", email: "alex@example.com", active: true
       foo "baz", 1, 2, 3, bar: true, quux: false
     }
-    assert_equal nodes.to_s, doc.to_s
+    assert_equal nodes, doc
   end
 
   def test_nested_child_nodes
@@ -50,7 +50,7 @@ class ParserTest < Minitest::Test
         }
       }
     }
-    assert_equal nodes.to_s, doc.to_s
+    assert_equal nodes, doc
   end
 
   def test_semicolon
@@ -58,13 +58,13 @@ class ParserTest < Minitest::Test
     nodes = nodes! {
       node1; node2; node3;
     }
-    assert_equal nodes.to_s, doc.to_s
+    assert_equal nodes, doc
   end
 
   def test_raw_strings
     doc = @parser.parse <<~KDL
-      node "this\nhas\tescapes"
-      other r"C:\Users\zkat\"
+      node "this\\nhas\\tescapes"
+      other r"C:\\Users\\zkat\\"
       other-raw r#"hello"world"#
     KDL
     nodes = nodes! {
@@ -72,7 +72,7 @@ class ParserTest < Minitest::Test
       other "C:\\Users\\zkat\\"
       _ 'other-raw', "hello\"world"
     }
-    assert_equal nodes.to_s, doc.to_s
+    assert_equal nodes, doc
   end
 
   def test_multiline_strings
@@ -84,7 +84,7 @@ class ParserTest < Minitest::Test
     nodes = nodes! {
       string "my\nmultiline\nvalue"
     }
-    assert_equal nodes.to_s, doc.to_s
+    assert_equal nodes, doc
   end
 
   def test_numbers
@@ -102,7 +102,7 @@ class ParserTest < Minitest::Test
       _ 'my-binary', 0b10101101
       bignum 1_000_000
     }
-    assert_equal nodes.to_s, doc.to_s
+    assert_equal nodes, doc
   end
 
   def test_comments
@@ -122,7 +122,7 @@ class ParserTest < Minitest::Test
     nodes = nodes! {
       tag bar: false
     }
-    assert_equal nodes.to_s, doc.to_s
+    assert_equal nodes, doc
   end
 
   def test_slash_dash
@@ -141,7 +141,7 @@ class ParserTest < Minitest::Test
     nodes = nodes! {
       mynode "not commented"
     }
-    assert_equal nodes.to_s, doc.to_s
+    assert_equal nodes, doc
   end
 
   def test_multiline_nodes
@@ -152,7 +152,7 @@ class ParserTest < Minitest::Test
     nodes = nodes! {
       title "Some title"
     }
-    assert_equal nodes.to_s, doc.to_s
+    assert_equal nodes, doc
   end
 
   def test_utf8
@@ -164,7 +164,7 @@ class ParserTest < Minitest::Test
       ::KDL::Node.new('smile', [::KDL::Value::String.new('😁')]),
       ::KDL::Node.new('ノード', [], { 'お名前' => ::KDL::Value::String.new('☜(ﾟヮﾟ☜)') })
     ])
-    assert_equal nodes.to_s, doc.to_s
+    assert_equal nodes, doc
   end
 
   def test_node_names
@@ -176,6 +176,6 @@ class ParserTest < Minitest::Test
       _ "!@#$@$%Q#$%~@!40", "1.2.3", "!!!!!": true
       _ "foo123~!@#$%^&*.:'|/?+", "weeee"
     }
-    assert_equal nodes.to_s, doc.to_s
+    assert_equal nodes, doc
   end
 end

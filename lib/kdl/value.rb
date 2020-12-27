@@ -9,25 +9,34 @@ module KDL
     def to_s
       value.to_s
     end
-
-    def ==(other)
-      return false unless other.is_a?(Value)
-
-      value == other.value
-    end
+    alias inspect to_s
 
     class Int < Value
+      def ==(other)
+        other.is_a?(Int) && value == other.value
+      end
     end
 
     class Float < Value
+      def ==(other)
+        other.is_a?(Float) && value == other.value
+      end
     end
 
     class Boolean < Value
+      def ==(other)
+        other.is_a?(Boolean) && value == other.value
+      end
     end
 
     class String < Value
       def to_s
         value.inspect
+      end
+      alias inspect to_s
+
+      def ==(other)
+        other.is_a?(String) && value == other.value
       end
     end
 
@@ -38,6 +47,11 @@ module KDL
 
       def to_s
         "null"
+      end
+      alias inspect to_s
+
+      def ==(other)
+        other.is_a?(NullImpl)
       end
     end
     Null = NullImpl.new

@@ -25,5 +25,15 @@ module KDL
       end
       s
     end
+    alias inspect to_s
+
+    def ==(other)
+      return false unless other.is_a?(Node)
+
+      name       == other.name       &&
+      arguments  == other.arguments  &&
+      properties == other.properties &&
+      children   == other.children
+    end
   end
 end
