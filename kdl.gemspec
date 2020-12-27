@@ -4,15 +4,13 @@ Gem::Specification.new do |spec|
   spec.name          = "kdl"
   spec.version       = KDL::VERSION
   spec.authors       = ["Daniel Smith"]
-  spec.email         = ["jellymann@gmail.com"]
+  spec.email         = ["danini@hey.com"]
 
   spec.summary       = %q{KDL Document Language}
   spec.description   = %q{Ruby implementation of the KDL Document Language Spec}
   spec.homepage      = "https://kdl.dev"
   spec.license       = "MIT"
   spec.required_ruby_version = Gem::Requirement.new(">= 2.3.0")
-
-  spec.metadata["allowed_push_host"] = "TODO: Set to 'http://mygemserver.com'"
 
   spec.metadata["homepage_uri"] = spec.homepage
   spec.metadata["source_code_uri"] = "https://github.com/jellymann/kdl-rb"
