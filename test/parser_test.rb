@@ -149,9 +149,13 @@ class ParserTest < Minitest::Test
     doc = @parser.parse <<~KDL
       title \\
         "Some title"
+
+      my-node 1 2 \\  // comments are ok after \\
+              3 4
     KDL
     nodes = nodes! {
       title "Some title"
+      _ "my-node", 1, 2, 3, 4
     }
     assert_equal nodes, doc
   end
