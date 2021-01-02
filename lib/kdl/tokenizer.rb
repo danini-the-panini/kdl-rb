@@ -1,6 +1,32 @@
 module KDL
   class Tokenizer
-    class Error < StandardError; end
+    class Error < StandardError
+      def initialize(message, line, column)
+        super("#{message} (#{line}:#{column})")
+      end
+    end
+
+    class Token
+      attr_reader :type, :value, :line, :column
+
+      def initialize(type, value, line, column)
+        @type = type
+        @value = value
+        @line = line
+        @column = column
+      end
+
+      def ==(other)
+        return false unless other.is_a?(Token)
+
+        type == other.type && value == other.value && line == other.line && column == other.column
+      end
+
+      def to_s
+        "#{value.inspect} (#{line}:#{column})"
+      end
+      alias inspect to_s
+    end
 
     attr_reader :index
 
@@ -32,11 +58,15 @@ module KDL
       @buffer = ""
       @done = false
       @previous_context = nil
+      @line = 1
+      @column = 1
     end
 
     def next_token
       @context = nil
       @previous_context = nil
+      @line_at_start = @line
+      @column_at_start = @column
       loop do
         c = @str[@index]
         case @context
@@ -45,11 +75,11 @@ module KDL
           when '"'
             self.context = :string
             @buffer = ''
-            @index += 1
+            traverse(1)
           when 'r'
             if @str[@index + 1] == '"'
               self.context = :rawstring
-              @index += 2
+              traverse(2)
               @rawstring_hashes = 0
               @buffer = ''
               next
@@ -69,20 +99,20 @@ module KDL
             end
             self.context = :ident
             @buffer = c
-            @index += 1
+            traverse(1)
           when /[0-9\-+]/
             n = @str[@index + 1]
             if c == '0' && n =~ /[box]/
-              @index += 2
+              traverse(2)
               @buffer = ''
               self.context = case n
-                         when 'b' then :binary
-                         when 'o' then :octal
-                         when 'x' then :hexadecimal
-                         end
+                             when 'b' then :binary
+                             when 'o' then :octal
+                             when 'x' then :hexadecimal
+                             end
             else
               self.context = :decimal
-              @index += 1
+              traverse(1)
               @buffer = c
             end
           when '\\'
@@ -90,68 +120,74 @@ module KDL
             la = t.next_token[0]
             if la == :NEWLINE
               @index = t.index
+              new_line
             elsif la == :WS && (lan = t.next_token[0]) == :NEWLINE
               @index = t.index
+              new_line
             else
-              raise Error, "Unexpected '\\'"
+              raise_error "Unexpected '\\'"
             end
           when *SYMBOLS.keys
-            @index += 1
-            return [SYMBOLS[c], c]
+            return token(SYMBOLS[c], c).tap { traverse(1) }
           when "\r"
             n = @str[@index + 1]
             if n == "\n"
-              @index += 2
-              return [:NEWLINE, "#{c}#{n}"]
+              return token(:NEWLINE, "#{c}#{n}").tap do
+                traverse(2)
+                new_line
+              end
             else
-              @index += 1
-              return [:NEWLINE, c]
+              return token(:NEWLINE, c).tap do
+                traverse(1)
+                new_line
+              end
             end
           when *NEWLINES
-            @index += 1
-            return [:NEWLINE, c]
+            return token(:NEWLINE, c).tap do
+              traverse(1)
+              new_line
+            end
           when "/"
             if @str[@index + 1] == '/'
               self.context = :single_line_comment
-              @index += 2
+              traverse(2)
             elsif @str[@index + 1] == '*'
               self.context = :multi_line_comment
               @comment_nesting = 1
-              @index += 2
+              traverse(2)
             elsif @str[@index + 1] == '-'
-              @index += 2
-              return [:SLASHDASH, '/-']
+              return token(:SLASHDASH, '/-').tap { traverse(2) }
             else
               self.context = :ident
               @buffer = c
-              @index += 1
+              traverse(1)
             end
           when *WHITEPACE
             self.context = :whitespace
             @buffer = c
-            @index += 1
+            traverse(1)
           when nil
-            return [false, false] if @done
+            return [false, token(:EOF, :EOF)[1]] if @done
             @done = true
-            return [:EOF, '']
+            return token(:EOF, :EOF)
           when INITIAL_IDENTIFIER_CHARS
             self.context = :ident
             @buffer = c
-            @index += 1
+            traverse(1)
           else
-            raise Error, "Unexpected character #{c.inspect}"
+            raise_error "Unexpected character #{c.inspect}"
           end
         when :ident
           case c
           when IDENTIFIER_CHARS
-            @index += 1
+            traverse(1)
             @buffer += c
           else
             case @buffer
-            when 'true'  then return [:TRUE, true]
-            when 'false' then return [:FALSE, false]
-            when 'null'  then return [:NULL, nil]
-            else return [:IDENT, @buffer]
+            when 'true'  then return token(:TRUE, true)
+            when 'false' then return token(:FALSE, false)
+            when 'null'  then return token(:NULL, nil)
+            else return token(:IDENT, @buffer)
             end
           end
         when :string
@@ -159,18 +195,17 @@ module KDL
           when '\\'
             @buffer += c
             @buffer += @str[@index + 1]
-            @index += 2
+            traverse(2)
           when '"'
-            @index += 1
-            return [:STRING, convert_escapes(@buffer)]
+            return token(:STRING, convert_escapes(@buffer)).tap { traverse(1) }
           when nil
-            raise Error, "Unterminated string literal"
+            raise_error "Unterminated string literal"
           else
             @buffer += c
-            @index += 1
+            traverse(1)
           end
         when :rawstring
-          raise Error, "Unterminated rawstring literal" if c.nil?
+          raise_error "Unterminated rawstring literal" if c.nil?
 
           if c == '"'
             h = 0
@@ -178,17 +213,16 @@ module KDL
               h += 1
             end
             if h == @rawstring_hashes
-              @index += 1 + h
-              return [:RAWSTRING, @buffer]
+              return token(:RAWSTRING, @buffer).tap { traverse(1 + h) }
             end
           end
 
           @buffer += c
-          @index += 1
+          traverse(1)
         when :decimal
           case c
           when /[0-9.\-+_eE]/
-            @index += 1
+            traverse(1)
             @buffer += c
           else
             return parse_decimal(@buffer)
@@ -196,7 +230,7 @@ module KDL
         when :hexadecimal
           case c
           when /[0-9a-fA-F_]/
-            @index += 1
+            traverse(1)
             @buffer += c
           else
             return parse_hexadecimal(@buffer)
@@ -204,7 +238,7 @@ module KDL
         when :octal
           case c
           when /[0-7_]/
-            @index += 1
+            traverse(1)
             @buffer += c
           else
             return parse_octal(@buffer)
@@ -212,7 +246,7 @@ module KDL
         when :binary
           case c
           when /[01_]/
-            @index += 1
+            traverse(1)
             @buffer += c
           else
             return parse_binary(@buffer)
@@ -220,49 +254,72 @@ module KDL
         when :single_line_comment
           if NEWLINES.include?(c) || c == "\r"
             self.context = nil
+            @column_at_start = @column
             next
           elsif c.nil?
             @done = true
-            return [:EOF, '']
+            return token(:EOF, :EOF)
           else
-            @index += 1
+            traverse(1)
           end
         when :multi_line_comment
           if c == '/' && @str[@index + 1] == '*'
             @comment_nesting += 1
-            @index += 2
+            traverse(2)
           elsif c == '*' && @str[@index + 1] == '/'
             @comment_nesting -= 1
-            @index += 2
+            traverse(2)
             if @comment_nesting == 0
               revert_context
             end
           else
-            @index += 1
+            traverse(1)
           end
         when :whitespace
           if WHITEPACE.include?(c)
-            @index += 1
+            traverse(1)
             @buffer += c
           elsif c == "\\"
             t = Tokenizer.new(@str, @index + 1)
             la = t.next_token[0]
             if la == :NEWLINE
               @index = t.index
+              new_line
             elsif (la == :WS && (lan = t.next_token[0]) == :NEWLINE)
               @index = t.index
+              new_line
             else
-              raise Error, "Unexpected '\\'"
+              raise_error "Unexpected '\\'"
             end
           elsif c == "/" && @str[@index + 1] == '*'
             self.context = :multi_line_comment
             @comment_nesting = 1
-            @index += 2
+            traverse(2)
           else
-            return [:WS, @buffer]
+            return token(:WS, @buffer)
           end
         end
       end
+    end
+
+    private
+
+    def token(type, value)
+      [type, Token.new(type, value, @line_at_start, @column_at_start)]
+    end
+
+    def traverse(n = 1)
+      @column += n
+      @index += n
+    end
+
+    def raise_error(message)
+      raise Error.new(message, @line, @column)
+    end
+
+    def new_line
+      @column = 1
+      @line += 1
     end
 
     def context=(val)
@@ -275,23 +332,21 @@ module KDL
       @previous_context = nil
     end
 
-    private
-
     def parse_decimal(s)
-      return [:FLOAT, Float(munch_underscores(s))] if s =~ /[.eE]/
-      [:INTEGER, Integer(munch_underscores(s), 10)]
+      return token(:FLOAT, Float(munch_underscores(s))) if s =~ /[.eE]/
+      token(:INTEGER, Integer(munch_underscores(s), 10))
     end
     
     def parse_hexadecimal(s)
-      [:INTEGER, Integer(munch_underscores(s), 16)]
+      token(:INTEGER, Integer(munch_underscores(s), 16))
     end
     
     def parse_octal(s)
-      [:INTEGER, Integer(munch_underscores(s), 8)]
+      token(:INTEGER, Integer(munch_underscores(s), 8))
     end
     
     def parse_binary(s)
-      [:INTEGER, Integer(munch_underscores(s), 2)]
+      token(:INTEGER, Integer(munch_underscores(s), 2))
     end
 
     def munch_underscores(s)
@@ -309,12 +364,12 @@ module KDL
         when '\b' then "\b"
         when '\f' then "\f"
         when '\/' then "/"
-        else raise Error, "Unexpected escape #{m.inspect}"
+        else raise_error "Unexpected escape #{m.inspect}"
         end
       end.gsub(/\\u\{[0-9a-fA-F]{0,6}\}/) do |m|
         i = Integer(m[3..-2], 16)
         if i < 0 || i > 0x10FFFF
-          raise Error, "Invalid code point #{u}"
+          raise_error "Invalid code point #{u}"
         end
         i.chr(Encoding::UTF_8)
       end

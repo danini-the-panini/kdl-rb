@@ -33,15 +33,15 @@ rule
   node_term: linespaces | semicolon_term
   semicolon_term: SEMICOLON | SEMICOLON linespaces
 
-  identifier: IDENT  { val[0] }
-            | STRING { val[0] }
+  identifier: IDENT  { val[0].value }
+            | STRING { val[0].value }
 
   property: identifier EQUALS value { [val[0], val[2]] }
 
-  value : STRING     { KDL::Value::String.new(val[0]) }
-        | RAWSTRING  { KDL::Value::String.new(val[0]) }
-        | INTEGER    { KDL::Value::Int.new(val[0]) }
-        | FLOAT      { KDL::Value::Float.new(val[0]) }
+  value : STRING     { KDL::Value::String.new(val[0].value) }
+        | RAWSTRING  { KDL::Value::String.new(val[0].value) }
+        | INTEGER    { KDL::Value::Int.new(val[0].value) }
+        | FLOAT      { KDL::Value::Float.new(val[0].value) }
         | boolean    { KDL::Value::Boolean.new(val[0]) }
         | NULL       { KDL::Value::Null }
 
