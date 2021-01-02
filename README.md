@@ -1,6 +1,6 @@
 # KDL
 
-[![Actions Status](https://github.com/jellymann/kdl-rb/workflows/Ruby/badge.svg)](https://github.com/jellymann/kdl-rb\/actions)
+[![Actions Status](https://github.com/jellymann/kdl-rb/workflows/Ruby/badge.svg)](https://github.com/jellymann/kdl-rb/actions)
 
 This is a Ruby implementation of the [KDL Document Language](https://kdl.dev)
 
