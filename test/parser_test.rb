@@ -96,7 +96,7 @@ class ParserTest < Minitest::Test
     assert_equal ::KDL::Document.new([::KDL::Node.new('node', [::KDL::Value::String.new("\u{10FFF}")])]),
                  @parser.parse('node "\\u{10FFF}"')
     assert_equal ::KDL::Document.new([::KDL::Node.new('node', [::KDL::Value::String.new("\"\\/\u{08}\u{0C}\n\r\t")])]),
-                 @parser.parse('node "\"\\\/\b\f\n\r\t"')
+                 @parser.parse('node "\"\\\\\/\b\f\n\r\t"')
     assert_equal ::KDL::Document.new([::KDL::Node.new('node', [::KDL::Value::String.new("\u{10}")])]),
                  @parser.parse('node "\u{10}"')
     assert_raises { @parser.parse('node "\i"') }

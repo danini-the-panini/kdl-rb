@@ -308,6 +308,7 @@ module KDL
         when '\"' then "\""
         when '\b' then "\b"
         when '\f' then "\f"
+        when '\/' then "/"
         else raise Error, "Unexpected escape #{m.inspect}"
         end
       end.gsub(/\\u\{[0-9a-fA-F]{0,6}\}/) do |m|
