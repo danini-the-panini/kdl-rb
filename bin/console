@@ -10,5 +10,7 @@ require "kdl"
 # require "pry"
 # Pry.start
 
+system 'bin/rake racc'
+
 require "irb"
 IRB.start(__FILE__)
