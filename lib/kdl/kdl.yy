@@ -18,9 +18,9 @@ rule
             | linespace_star empty_node { [] }
             | nodes node                { [*val[0], val[1]] }
             | nodes empty_node          { val[0] }
-  node      : node_decl node_term                                 { val[0] }
+  node      : node_decl node_term                                 { val[0].tap { |x| x.children = nil } }
             | node_decl node_children node_term                   { val[0].tap { |x| x.children = val[1] } }
-            | node_decl empty_children node_term                   { val[0] }
+            | node_decl empty_children node_term                  { val[0].tap { |x| x.children = nil } }
   node_decl : identifier                              { KDL::Node.new(val[0]) }
             | node_decl WS value                      { val[0].tap { |x| x.arguments << val[2] } }
             | node_decl WS SLASHDASH ws_star value    { val[0] }
@@ -33,15 +33,15 @@ rule
   node_term: linespaces | semicolon_term
   semicolon_term: SEMICOLON | SEMICOLON linespaces
 
-  identifier: IDENT  { val[0].value }
-            | STRING { val[0].value }
+  identifier: IDENT  { KDL::Key.new(val[0].value, quoted: false) }
+            | STRING { KDL::Key.new(val[0].value, quoted: true) }
 
   property: identifier EQUALS value { [val[0], val[2]] }
 
   value : STRING     { KDL::Value::String.new(val[0].value) }
         | RAWSTRING  { KDL::Value::String.new(val[0].value) }
-        | INTEGER    { KDL::Value::Int.new(val[0].value) }
-        | FLOAT      { KDL::Value::Float.new(val[0].value) }
+        | INTEGER    { KDL::Value::Int.new(val[0].value, format: val[0].meta[:format]) }
+        | FLOAT      { KDL::Value::Float.new(val[0].value, format: val[0].meta[:format]) }
         | boolean    { KDL::Value::Boolean.new(val[0]) }
         | NULL       { KDL::Value::Null }
 

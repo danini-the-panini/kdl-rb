@@ -21,11 +21,11 @@ class Minitest::Test
     end
 
     def method_missing(name, *args, **kwargs, &block)
-      node = ::KDL::Node.new(name.to_s,
+      node = ::KDL::Node.new(::KDL::Key.new(name.to_s),
                              args.map { |a| ::KDL::Value.from(a) },
-                             kwargs.map { |k, v| [k.to_s, ::KDL::Value.from(v) ]}
+                             kwargs.map { |k, v| [::KDL::Key.new(k.to_s), ::KDL::Value.from(v) ]}
                                    .to_h)
-      node.children = Nodes.nodes!(&block) if block
+      node.children = block_given? ? Nodes.nodes!(&block) : nil
       @children << node
     end
     alias _ method_missing
