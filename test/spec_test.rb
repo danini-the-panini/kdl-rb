@@ -1,6 +1,6 @@
 require "test_helper"
 
-class SpectTest < Minitest::Test
+class SpecTest < Minitest::Test
   TEST_CASES_DIR = File.join(__dir__, 'kdl-org/tests/test_cases')
   INPUTS_DIR = File.join(TEST_CASES_DIR, 'input')
   EXPECTED_DIR = File.join(TEST_CASES_DIR, 'expected_kdl')

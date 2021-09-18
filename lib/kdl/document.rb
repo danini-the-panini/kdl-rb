@@ -7,9 +7,8 @@ module KDL
     end
 
     def to_s
-      @nodes.map(&:to_s).join("\n")
+      @nodes.map(&:to_s).join("\n") + "\n"
     end
-    alias inspect to_s
 
     def ==(other)
       return false unless other.is_a?(Document)

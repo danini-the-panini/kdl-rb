@@ -1,15 +1,17 @@
 module KDL
   class Value
-    attr_reader :value
+    attr_reader :value, :format
 
-    def initialize(value)
+    def initialize(value, format: nil)
       @value = value
+      @format = format
     end
 
     def to_s
+      return format % value if format
+
       value.to_s
     end
-    alias inspect to_s
 
     class Int < Value
       def ==(other)

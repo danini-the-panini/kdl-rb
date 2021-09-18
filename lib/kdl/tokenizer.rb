@@ -7,13 +7,14 @@ module KDL
     end
 
     class Token
-      attr_reader :type, :value, :line, :column
+      attr_reader :type, :value, :line, :column, :meta
 
-      def initialize(type, value, line, column)
+      def initialize(type, value, line, column, meta = {})
         @type = type
         @value = value
         @line = line
         @column = column
+        @meta = meta
       end
 
       def ==(other)
@@ -46,7 +47,7 @@ module KDL
 
     NEWLINES = ["\u000A", "\u0085", "\u000C", "\u2028", "\u2029"]
 
-    NON_IDENTIFIER_CHARS = Regexp.escape "#{SYMBOLS.keys.join('')}\\<>[]\","
+    NON_IDENTIFIER_CHARS = Regexp.escape "#{SYMBOLS.keys.join('')}()/\\<>[]\","
     IDENTIFIER_CHARS = /[^#{NON_IDENTIFIER_CHARS}\x0-\x20]/
     INITIAL_IDENTIFIER_CHARS = /[^#{NON_IDENTIFIER_CHARS}0-9\x0-\x20]/
 
@@ -304,8 +305,8 @@ module KDL
 
     private
 
-    def token(type, value)
-      [type, Token.new(type, value, @line_at_start, @column_at_start)]
+    def token(type, value, **meta)
+      [type, Token.new(type, value, @line_at_start, @column_at_start, meta)]
     end
 
     def traverse(n = 1)
@@ -333,20 +334,27 @@ module KDL
     end
 
     def parse_decimal(s)
-      return token(:FLOAT, Float(munch_underscores(s))) if s =~ /[.eE]/
-      token(:INTEGER, Integer(munch_underscores(s), 10))
+      return parse_float(s) if s =~ /[.E]/i
+      token(:INTEGER, Integer(munch_underscores(s), 10), format: '%d')
     end
-    
+
+    def parse_float(s)
+      s = munch_underscores(s)
+      scientific = s =~ /E/i
+      decimals = s =~ /\./ ? s.split(/[.E]/i)[1].size : 0
+      token(:FLOAT, Float(s), format: "%.#{decimals}#{scientific ? 'E' : 'f'}")
+    end
+
     def parse_hexadecimal(s)
-      token(:INTEGER, Integer(munch_underscores(s), 16))
+      token(:INTEGER, Integer(munch_underscores(s), 16), format: '0x%x')
     end
-    
+
     def parse_octal(s)
-      token(:INTEGER, Integer(munch_underscores(s), 8))
+      token(:INTEGER, Integer(munch_underscores(s), 8), format: '0o%o')
     end
-    
+
     def parse_binary(s)
-      token(:INTEGER, Integer(munch_underscores(s), 2))
+      token(:INTEGER, Integer(munch_underscores(s), 2), format: '0b%b')
     end
 
     def munch_underscores(s)
