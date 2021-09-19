@@ -8,10 +8,10 @@ module KDL
     end
 
     def to_s
-      if quoted
-        name.inspect
+      if bare_identifier?
+        name
       else
-        name.to_s
+        StringDumper.call(name)
       end
     end
 
@@ -24,6 +24,13 @@ module KDL
 
     def hash
       name.hash
+    end
+
+    private
+
+    def bare_identifier?
+      escape_chars = '\/(){}<>;\[\]=,"'
+      name =~ /^([^0-9\-+\s#{escape_chars}][^\s#{escape_chars}]*|[\-+](?!true|false|null)[^0-9\s#{escape_chars}][^\s#{escape_chars}]*)$/
     end
   end
 end
