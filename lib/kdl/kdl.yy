@@ -28,6 +28,7 @@ rule
             | node_decl WS SLASHDASH ws_star property { val[0] }
   empty_node: SLASHDASH ws_star node
   node_children: ws_star LPAREN nodes RPAREN { val[2] }
+               | ws_star LPAREN linespace_star RPAREN { [] }
   empty_children: SLASHDASH node_children
                 | WS empty_children
   node_term: linespaces | semicolon_term
