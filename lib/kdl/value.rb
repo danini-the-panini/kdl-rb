@@ -23,6 +23,16 @@ module KDL
       def ==(other)
         other.is_a?(Float) && value == other.value
       end
+
+      def to_s
+        return super unless value.is_a?(BigDecimal)
+
+        sign, digits, _, exponent = value.split
+        s = sign.negative? ? '-' : ''
+        s += "#{digits[0]}.#{digits[1..-1]}"
+        s += "E#{exponent.negative? ? '' : '+'}#{exponent - 1}"
+        s
+      end
     end
 
     class Boolean < Value

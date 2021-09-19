@@ -1,3 +1,5 @@
+require 'bigdecimal'
+
 module KDL
   class Tokenizer
     class Error < StandardError
@@ -340,13 +342,18 @@ module KDL
     end
 
     def parse_float(s)
-      match, whole, fraction, exponent = *s.match(/^([-+]?[\d_]+)(?:\.(\d+))?([eE][-+]?[\d_]+)?$/)
+      match, whole, fraction, exponent = *s.match(/^([-+]?[\d_]+)(?:\.(\d+))?(?:[eE]([-+]?[\d_]+))?$/)
       raise "Invalid floating point value #{s}" if match.nil?
 
       s = munch_underscores(s)
       scientific = !exponent.nil?
       decimals = fraction.nil? ? 0 : fraction.size
-      token(:FLOAT, Float(s), format: "%.#{decimals}#{scientific ? 'E' : 'f'}")
+      value = Float(s)
+      if value.infinite? || (value.zero? && exponent.to_i < 0)
+        token(:FLOAT, BigDecimal(s))
+      else
+        token(:FLOAT, value, format: "%.#{decimals}#{scientific ? 'E' : 'f'}")
+      end
     end
 
     def parse_hexadecimal(s)
