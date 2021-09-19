@@ -119,7 +119,7 @@ class ParserTest < Minitest::Test
     assert_equal ::KDL::Document.new([::KDL::Node.new(::KDL::Key.new('node'), [::KDL::Value::Float.new(123456789.0)])]),
                  @parser.parse('node 123_456_789.0')
     assert_equal ::KDL::Document.new([::KDL::Node.new(::KDL::Key.new('node'), [::KDL::Value::Float.new(123456789.0)])]),
-                 @parser.parse('node 123_456_789.0_')
+                 @parser.parse('node 123_456_789.0')
     assert_raises { @parser.parse('node ?1.0') }
     assert_raises { @parser.parse('node _1.0') }
     assert_raises { @parser.parse('node 1._0') }
