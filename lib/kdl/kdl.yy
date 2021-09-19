@@ -34,8 +34,8 @@ rule
   node_term: linespaces | semicolon_term
   semicolon_term: SEMICOLON | SEMICOLON linespaces
 
-  identifier: IDENT  { KDL::Key.new(val[0].value, quoted: false) }
-            | STRING { KDL::Key.new(val[0].value, quoted: true) }
+  identifier: IDENT  { KDL::Key.new(val[0].value) }
+            | STRING { KDL::Key.new(val[0].value) }
 
   property: identifier EQUALS value { [val[0], val[2]] }
 

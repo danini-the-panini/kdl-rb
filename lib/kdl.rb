@@ -4,6 +4,7 @@ require "kdl/document"
 require "kdl/value"
 require "kdl/node"
 require "kdl/key"
+require "kdl/string_dumper"
 require "kdl/kdl.tab"
 
 module KDL

@@ -43,9 +43,8 @@ module KDL
 
     class String < Value
       def to_s
-        value.inspect
+        StringDumper.call(value)
       end
-      alias inspect to_s
 
       def ==(other)
         other.is_a?(String) && value == other.value
