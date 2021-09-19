@@ -29,7 +29,7 @@ module KDL
     private
 
     def bare_identifier?
-      escape_chars = '\/(){}<>;\[\]=,"'
+      escape_chars = '\\\/(){}<>;\[\]=,"'
       name =~ /^([^0-9\-+\s#{escape_chars}][^\s#{escape_chars}]*|[\-+](?!true|false|null)[^0-9\s#{escape_chars}][^\s#{escape_chars}]*)$/
     end
   end
