@@ -335,13 +335,17 @@ module KDL
 
     def parse_decimal(s)
       return parse_float(s) if s =~ /[.E]/i
+
       token(:INTEGER, Integer(munch_underscores(s), 10), format: '%d')
     end
 
     def parse_float(s)
+      match, whole, fraction, exponent = *s.match(/^([-+]?[\d_]+)(?:\.(\d+))?([eE][-+]?[\d_]+)?$/)
+      raise "Invalid floating point value #{s}" if match.nil?
+
       s = munch_underscores(s)
-      scientific = s =~ /E/i
-      decimals = s =~ /\./ ? s.split(/[.E]/i)[1].size : 0
+      scientific = !exponent.nil?
+      decimals = fraction.nil? ? 0 : fraction.size
       token(:FLOAT, Float(s), format: "%.#{decimals}#{scientific ? 'E' : 'f'}")
     end
 
