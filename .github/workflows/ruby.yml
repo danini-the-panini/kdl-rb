@@ -27,8 +27,7 @@ jobs:
       uses: ruby/setup-ruby@v1
       with:
         ruby-version: ${{ matrix.ruby }}
-    - name: Install dependencies
-      run: gem install bundler && bundle install
+        bundler-cache: true # install and cache dependencies
     - name: Build parser
       run: bundle exec racc lib/kdl/kdl.yy
     - name: Run tests
