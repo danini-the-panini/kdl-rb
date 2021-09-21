@@ -34,8 +34,8 @@ module KDL
     attr_reader :index
 
     SYMBOLS = {
-      '{' => :LPAREN,
-      '}' => :RPAREN,
+      '{' => :LBRACE,
+      '}' => :RBRACE,
       '=' => :EQUALS,
       '＝' => :EQUALS,
       ';' => :SEMICOLON

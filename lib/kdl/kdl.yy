@@ -4,7 +4,7 @@ class KDL::Parser
         STRING RAWSTRING
         INTEGER FLOAT TRUE FALSE NULL
         WS NEWLINE
-        LPAREN RPAREN
+        LBRACE RBRACE
         EQUALS
         SEMICOLON
         EOF
@@ -27,8 +27,8 @@ rule
             | node_decl WS property                   { val[0].tap { |x| x.properties[val[2][0]] = val[2][1] } }
             | node_decl WS SLASHDASH ws_star property { val[0] }
   empty_node: SLASHDASH ws_star node
-  node_children: ws_star LPAREN nodes RPAREN { val[2] }
-               | ws_star LPAREN linespace_star RPAREN { [] }
+  node_children: ws_star LBRACE nodes RBRACE { val[2] }
+               | ws_star LBRACE linespace_star RBRACE { [] }
   empty_children: SLASHDASH node_children
                 | WS empty_children
   node_term: linespaces | semicolon_term
