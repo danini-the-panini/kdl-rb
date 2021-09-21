@@ -46,8 +46,8 @@ class TokenizerTest < Minitest::Test
   end
 
   def test_symbols
-    assert_equal t(:LPAREN, '{'), ::KDL::Tokenizer.new("{").next_token
-    assert_equal t(:RPAREN, '}'), ::KDL::Tokenizer.new("}").next_token
+    assert_equal t(:LBRACE, '{'), ::KDL::Tokenizer.new("{").next_token
+    assert_equal t(:RBRACE, '}'), ::KDL::Tokenizer.new("}").next_token
     assert_equal t(:EQUALS, '='), ::KDL::Tokenizer.new("=").next_token
   end
 
@@ -159,12 +159,12 @@ class TokenizerTest < Minitest::Test
     assert_equal t(:INTEGER, 1, 1, 24), tokenizer.next_token
     assert_equal t(:WS, ' ', 1, 25), tokenizer.next_token
     assert_equal t(:SLASHDASH, '/-', 1, 26), tokenizer.next_token
-    assert_equal t(:LPAREN, '{', 1, 28), tokenizer.next_token
+    assert_equal t(:LBRACE, '{', 1, 28), tokenizer.next_token
     assert_equal t(:NEWLINE, "\n", 1, 29), tokenizer.next_token
     assert_equal t(:WS, '  ', 2, 1), tokenizer.next_token
     assert_equal t(:IDENT, 'a', 2, 3), tokenizer.next_token
     assert_equal t(:NEWLINE, "\n", 2, 4), tokenizer.next_token
-    assert_equal t(:RPAREN, '}', 3, 1), tokenizer.next_token
+    assert_equal t(:RBRACE, '}', 3, 1), tokenizer.next_token
     assert_equal t(:NEWLINE, "\n", 3, 2), tokenizer.next_token
     assert_equal t(:EOF, :EOF, 4, 1), tokenizer.next_token
     assert_equal eof(4, 1), tokenizer.next_token
