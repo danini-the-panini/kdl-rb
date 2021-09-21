@@ -2,7 +2,7 @@ require 'bundler/gem_tasks'
 require 'rake/testtask'
 
 file 'lib/kdl/kdl.tab.rb' => ['lib/kdl/kdl.yy'] do
-  system 'bin/racc lib/kdl/kdl.yy'
+  raise "racc command failed" unless system 'bin/racc lib/kdl/kdl.yy'
 end
 task :racc => 'lib/kdl/kdl.tab.rb'
 
