@@ -1,17 +1,18 @@
 module KDL
   class Node
-    attr_accessor :name, :arguments, :properties, :children
+    attr_accessor :name, :arguments, :properties, :children, :type
 
-    def initialize(name, arguments = [], properties = {}, children = nil)
+    def initialize(name, arguments = [], properties = {}, children = nil, type: nil)
       @name = name
       @arguments = arguments
       @properties = properties
       @children = children
+      @type = type
     end
 
     def to_s(level = 0)
       indent = '    ' * level
-      s = "#{indent}#{name}"
+      s = "#{indent}#{type ? "(#{type})" : ''}#{name}"
       unless arguments.empty?
         s += " #{arguments.map(&:to_s).join(' ')}"
       end

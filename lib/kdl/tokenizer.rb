@@ -36,6 +36,8 @@ module KDL
     SYMBOLS = {
       '{' => :LBRACE,
       '}' => :RBRACE,
+      '(' => :LPAREN,
+      ')' => :RPAREN,
       '=' => :EQUALS,
       '＝' => :EQUALS,
       ';' => :SEMICOLON
