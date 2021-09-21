@@ -452,4 +452,48 @@ class ParserTest < Minitest::Test
     }
     assert_equal nodes, doc
   end
+
+  def test_node_type
+    doc = @parser.parse <<~KDL
+      (foo)node
+    KDL
+    nodes = ::KDL::Document.new([
+      ::KDL::Node.new(::KDL::Key.new('node'), type: ::KDL::Key.new('foo')),
+    ])
+    assert_equal nodes, doc
+  end
+
+  def test_value_type
+    doc = @parser.parse <<~KDL
+      node (foo)"bar"
+    KDL
+    nodes = ::KDL::Document.new([
+      ::KDL::Node.new(::KDL::Key.new('node'), [::KDL::Value::String.new('bar', type: ::KDL::Key.new('foo'))]),
+    ])
+    assert_equal nodes, doc
+  end
+
+  def test_property_type
+    doc = @parser.parse <<~KDL
+      node baz=(foo)"bar"
+    KDL
+    nodes = ::KDL::Document.new([
+      ::KDL::Node.new(::KDL::Key.new('node'), [], { ::KDL::Key.new('baz') => ::KDL::Value::String.new('bar', type: ::KDL::Key.new('foo')) }),
+    ])
+    assert_equal nodes, doc
+  end
+
+  def test_child_type
+    doc = @parser.parse <<~KDL
+      node {
+        (foo)bar
+      }
+    KDL
+    nodes = ::KDL::Document.new([
+      ::KDL::Node.new(::KDL::Key.new('node'), [], {}, [
+        ::KDL::Node.new(::KDL::Key.new('bar'), type: ::KDL::Key.new('foo'))
+      ]),
+    ])
+    assert_equal nodes, doc
+  end
 end

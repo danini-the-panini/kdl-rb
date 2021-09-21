@@ -5,6 +5,7 @@ class KDL::Parser
         INTEGER FLOAT TRUE FALSE NULL
         WS NEWLINE
         LBRACE RBRACE
+        LPAREN RPAREN
         EQUALS
         SEMICOLON
         EOF
@@ -22,6 +23,7 @@ rule
             | node_decl node_children node_term                   { val[0].tap { |x| x.children = val[1] } }
             | node_decl empty_children node_term                  { val[0].tap { |x| x.children = nil } }
   node_decl : identifier                              { KDL::Node.new(val[0]) }
+            | type identifier                         { KDL::Node.new(val[1], type: val[0]) }
             | node_decl WS value                      { val[0].tap { |x| x.arguments << val[2] } }
             | node_decl WS SLASHDASH ws_star value    { val[0] }
             | node_decl WS property                   { val[0].tap { |x| x.properties[val[2][0]] = val[2][1] } }
@@ -34,18 +36,23 @@ rule
   node_term: linespaces | semicolon_term
   semicolon_term: SEMICOLON | SEMICOLON linespaces
 
+  type : LPAREN identifier RPAREN { val[1] }
+
   identifier: IDENT     { KDL::Key.new(val[0].value) }
             | STRING    { KDL::Key.new(val[0].value) }
             | RAWSTRING { KDL::Key.new(val[0].value) }
 
   property: identifier EQUALS value { [val[0], val[2]] }
 
-  value : STRING     { KDL::Value::String.new(val[0].value) }
-        | RAWSTRING  { KDL::Value::String.new(val[0].value) }
-        | INTEGER    { KDL::Value::Int.new(val[0].value, format: val[0].meta[:format]) }
-        | FLOAT      { KDL::Value::Float.new(val[0].value, format: val[0].meta[:format]) }
-        | boolean    { KDL::Value::Boolean.new(val[0]) }
-        | NULL       { KDL::Value::Null }
+  value : untyped_value
+        | type untyped_value { val[1].as_type(val[0]) }
+
+  untyped_value : STRING     { KDL::Value::String.new(val[0].value) }
+                | RAWSTRING  { KDL::Value::String.new(val[0].value) }
+                | INTEGER    { KDL::Value::Int.new(val[0].value, format: val[0].meta[:format]) }
+                | FLOAT      { KDL::Value::Float.new(val[0].value, format: val[0].meta[:format]) }
+                | boolean    { KDL::Value::Boolean.new(val[0]) }
+                | NULL       { KDL::Value::Null }
 
   boolean : TRUE  { true }
           | FALSE { false }

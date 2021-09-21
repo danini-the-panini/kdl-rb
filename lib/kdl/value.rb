@@ -1,13 +1,24 @@
 module KDL
   class Value
-    attr_reader :value, :format
+    attr_reader :value, :format, :type
 
-    def initialize(value, format: nil)
+    def initialize(value, format: nil, type: nil)
       @value = value
       @format = format
+      @type = type
+    end
+
+    def as_type(type)
+      self.class.new(value, format: format, type: type)
     end
 
     def to_s
+      return stringify_value unless type
+
+      "(#{type})#{stringify_value}"
+    end
+
+    def stringify_value
       return format % value if format
 
       value.to_s
@@ -24,7 +35,7 @@ module KDL
         other.is_a?(Float) && value == other.value
       end
 
-      def to_s
+      def stringify_value
         return super unless value.is_a?(BigDecimal)
 
         sign, digits, _, exponent = value.split
@@ -42,7 +53,7 @@ module KDL
     end
 
     class String < Value
-      def to_s
+      def stringify_value
         StringDumper.call(value)
       end
 
@@ -52,14 +63,13 @@ module KDL
     end
 
     class NullImpl < Value
-      def initialize
-        super(nil)
+      def initialize(_=nil, format: nil, type: nil)
+        super(nil, type: type)
       end
 
-      def to_s
+      def stringify_value
         "null"
       end
-      alias inspect to_s
 
       def ==(other)
         other.is_a?(NullImpl)
