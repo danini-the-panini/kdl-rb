@@ -2,18 +2,18 @@ require "test_helper"
 
 class NodeTest < Minitest::Test
   def test_to_s
-    value = ::KDL::Node.new(k("foo"), [v(1), v("two")], { k("three") => v(3) })
+    value = ::KDL::Node.new("foo", [v(1), v("two")], { "three" => v(3) })
 
     assert_equal 'foo 1 "two" three=3', value.to_s
   end
 
   def test_nested_to_s
-    value = ::KDL::Node.new(k("a1"), [v("a"), v(1)], {}, [
-      ::KDL::Node.new(k("b1"), [v("b"), v(1)], {}, [
-        ::KDL::Node.new(k("c1"), [v("c"), v(1)])
+    value = ::KDL::Node.new("a1", [v("a"), v(1)], {}, [
+      ::KDL::Node.new("b1", [v("b"), v(1)], {}, [
+        ::KDL::Node.new("c1", [v("c"), v(1)])
       ]),
-      ::KDL::Node.new(k("b2"), [v("b"), v(2)], {}, [
-        ::KDL::Node.new(k("c2"), [v("c"), v(2)])
+      ::KDL::Node.new("b2", [v("b"), v(2)], {}, [
+        ::KDL::Node.new("c2", [v("c"), v(2)])
       ])
     ])
 
@@ -34,9 +34,5 @@ class NodeTest < Minitest::Test
 
   def v(x)
     ::KDL::Value.from(x)
-  end
-
-  def k(x)
-    ::KDL::Key.new(x)
   end
 end

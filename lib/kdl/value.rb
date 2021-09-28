@@ -15,7 +15,7 @@ module KDL
     def to_s
       return stringify_value unless type
 
-      "(#{type})#{stringify_value}"
+      "(#{StringDumper.stringify_identifier type})#{stringify_value}"
     end
 
     def stringify_value

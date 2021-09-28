@@ -2,7 +2,15 @@ module KDL
   module StringDumper
     class << self
       def call(string)
-        s = %("#{string.each_char.map { |char| escape(char) }.join}")
+        %("#{string.each_char.map { |char| escape(char) }.join}")
+      end
+
+      def stringify_identifier(ident)
+        if bare_identifier?(ident)
+          ident
+        else
+          call(ident)
+        end
       end
 
       private
@@ -26,6 +34,11 @@ module KDL
 
       def unicode_escape(char)
         "\\u{#{char.codepoints.first.to_s(16)}}"
+      end
+
+      def bare_identifier?(name)
+        escape_chars = '\\\/(){}<>;\[\]=,"'
+        name =~ /^([^0-9\-+\s#{escape_chars}][^\s#{escape_chars}]*|[\-+](?!true|false|null)[^0-9\s#{escape_chars}][^\s#{escape_chars}]*)$/
       end
     end
   end

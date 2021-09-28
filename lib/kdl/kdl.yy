@@ -38,9 +38,9 @@ rule
 
   type : LPAREN identifier RPAREN { val[1] }
 
-  identifier: IDENT     { KDL::Key.new(val[0].value) }
-            | STRING    { KDL::Key.new(val[0].value) }
-            | RAWSTRING { KDL::Key.new(val[0].value) }
+  identifier: IDENT     { val[0].value }
+            | STRING    { val[0].value }
+            | RAWSTRING { val[0].value }
 
   property: identifier EQUALS value { [val[0], val[2]] }
 
