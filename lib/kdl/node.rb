@@ -12,12 +12,12 @@ module KDL
 
     def to_s(level = 0)
       indent = '    ' * level
-      s = "#{indent}#{type ? "(#{type})" : ''}#{name}"
+      s = "#{indent}#{type ? "(#{id_to_s type})" : ''}#{id_to_s name}"
       unless arguments.empty?
         s += " #{arguments.map(&:to_s).join(' ')}"
       end
       unless properties.empty?
-        s += " #{properties.map { |k, v| "#{k}=#{v}" }.join(' ')}"
+        s += " #{properties.map { |k, v| "#{id_to_s k}=#{v}" }.join(' ')}"
       end
       unless children.nil?
         s += " {\n"
@@ -36,6 +36,12 @@ module KDL
       arguments  == other.arguments  &&
       properties == other.properties &&
       children   == other.children
+    end
+
+    private
+
+    def id_to_s(id)
+      StringDumper.stringify_identifier(id)
     end
   end
 end
