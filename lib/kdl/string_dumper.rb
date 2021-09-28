@@ -20,7 +20,6 @@ module KDL
         when '"' then '\"'
         when "\b" then '\b'
         when "\f" then '\f'
-        when '/' then '\/'
         else char
         end
       end
