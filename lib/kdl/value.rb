@@ -36,7 +36,7 @@ module KDL
       end
 
       def stringify_value
-        return super unless value.is_a?(BigDecimal)
+        return super.upcase unless value.is_a?(BigDecimal)
 
         sign, digits, _, exponent = value.split
         s = sign.negative? ? '-' : ''

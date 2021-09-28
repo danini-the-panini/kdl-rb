@@ -49,7 +49,7 @@ rule
 
   untyped_value : STRING     { KDL::Value::String.new(val[0].value) }
                 | RAWSTRING  { KDL::Value::String.new(val[0].value) }
-                | INTEGER    { KDL::Value::Int.new(val[0].value, format: val[0].meta[:format]) }
+                | INTEGER    { KDL::Value::Int.new(val[0].value) }
                 | FLOAT      { KDL::Value::Float.new(val[0].value, format: val[0].meta[:format]) }
                 | boolean    { KDL::Value::Boolean.new(val[0]) }
                 | NULL       { KDL::Value::Null }
