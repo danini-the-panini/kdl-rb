@@ -361,26 +361,27 @@ module KDL
       raise_error "Invalid floating point value #{s}" if match.nil?
 
       s = munch_underscores(s)
-      scientific = !exponent.nil?
+
       decimals = fraction.nil? ? 0 : fraction.size
       value = Float(s)
+      scientific = value.abs >= 100 || (exponent && exponent.to_i.abs >= 2)
       if value.infinite? || (value.zero? && exponent.to_i < 0)
         token(:FLOAT, BigDecimal(s))
       else
-        token(:FLOAT, value, format: "%.#{decimals}#{scientific ? 'E' : 'f'}")
+        token(:FLOAT, value, format: scientific ? "%.#{decimals}E" : nil)
       end
     end
 
     def parse_hexadecimal(s)
-      token(:INTEGER, Integer(munch_underscores(s), 16), format: '0x%x')
+      token(:INTEGER, Integer(munch_underscores(s), 16))
     end
 
     def parse_octal(s)
-      token(:INTEGER, Integer(munch_underscores(s), 8), format: '0o%o')
+      token(:INTEGER, Integer(munch_underscores(s), 8))
     end
 
     def parse_binary(s)
-      token(:INTEGER, Integer(munch_underscores(s), 2), format: '0b%b')
+      token(:INTEGER, Integer(munch_underscores(s), 2))
     end
 
     def munch_underscores(s)
