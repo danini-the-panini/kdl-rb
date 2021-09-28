@@ -36,8 +36,6 @@ module KDL
     SYMBOLS = {
       '{' => :LBRACE,
       '}' => :RBRACE,
-      '(' => :LPAREN,
-      ')' => :RPAREN,
       '=' => :EQUALS,
       '＝' => :EQUALS,
       ';' => :SEMICOLON
@@ -55,6 +53,9 @@ module KDL
     IDENTIFIER_CHARS = /[^#{NON_IDENTIFIER_CHARS}\x0-\x20]/
     INITIAL_IDENTIFIER_CHARS = /[^#{NON_IDENTIFIER_CHARS}0-9\x0-\x20]/
 
+    ALLOWED_IN_TYPE = [:ident, :string, :rawstring]
+    NOT_ALLOWED_AFTER_TYPE = [:single_line_comment, :multi_line_comment]
+
     def initialize(str, start = 0)
       @str = str
       @context = nil
@@ -65,6 +66,7 @@ module KDL
       @previous_context = nil
       @line = 1
       @column = 1
+      @type_context = false
     end
 
     def next_token
@@ -179,6 +181,12 @@ module KDL
             self.context = :ident
             @buffer = c
             traverse(1)
+          when '('
+            @type_context = true
+            return token(:LPAREN, c).tap { traverse(1) }
+          when ')'
+            @type_context = false
+            return token(:RPAREN, c).tap { traverse(1) }
           else
             raise_error "Unexpected character #{c.inspect}"
           end
@@ -310,7 +318,7 @@ module KDL
     private
 
     def token(type, value, **meta)
-      [type, Token.new(type, value, @line_at_start, @column_at_start, meta)]
+      @last_token = [type, Token.new(type, value, @line_at_start, @column_at_start, meta)]
     end
 
     def traverse(n = 1)
@@ -328,6 +336,11 @@ module KDL
     end
 
     def context=(val)
+      if @type_context && !ALLOWED_IN_TYPE.include?(val)
+        raise_error "#{val} context not allowed in type declaration"
+      elsif @last_token && @last_token[0] == :RPAREN && NOT_ALLOWED_AFTER_TYPE.include?(val)
+        raise_error 'Comments are not allowed after a type declaration'
+      end
       @previous_context = @context
       @context = val
     end
@@ -345,7 +358,7 @@ module KDL
 
     def parse_float(s)
       match, whole, fraction, exponent = *s.match(/^([-+]?[\d_]+)(?:\.(\d+))?(?:[eE]([-+]?[\d_]+))?$/)
-      raise "Invalid floating point value #{s}" if match.nil?
+      raise_error "Invalid floating point value #{s}" if match.nil?
 
       s = munch_underscores(s)
       scientific = !exponent.nil?
