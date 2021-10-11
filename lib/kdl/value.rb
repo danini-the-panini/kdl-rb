@@ -60,6 +60,10 @@ module KDL
       def ==(other)
         other.is_a?(String) && value == other.value
       end
+
+      def as_type(type)
+        KDL::Types::MAPPING[type]&.parse(value) || super
+      end
     end
 
     class NullImpl < Value
