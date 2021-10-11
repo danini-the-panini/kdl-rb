@@ -6,7 +6,8 @@ class TypesTest < Minitest::Test
     node (date-time)"2021-01-01T12:12:12" \\
          (date)"2021-01-01" \\
          (time)"22:23:12" \\
-         (duration)"P3Y6M4DT12H30M5S"
+         (duration)"P3Y6M4DT12H30M5S" \\
+         (currency)"ZAR"
     KDL
 
     refute_nil doc
@@ -14,5 +15,6 @@ class TypesTest < Minitest::Test
     assert_kind_of ::KDL::Types::Date, doc.nodes.first.arguments[1]
     assert_kind_of ::KDL::Types::Time, doc.nodes.first.arguments[2]
     assert_kind_of ::KDL::Types::Duration, doc.nodes.first.arguments[3]
+    assert_kind_of ::KDL::Types::Currency, doc.nodes.first.arguments[4]
   end
 end
