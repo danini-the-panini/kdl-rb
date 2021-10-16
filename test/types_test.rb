@@ -11,7 +11,8 @@ class TypesTest < Minitest::Test
          (country-3)"ZAF" \\
          (country-2)"ZA" \\
          (ipv4)"127.0.0.1" \\
-         (ipv6)"3ffe:505:2::1"
+         (ipv6)"3ffe:505:2::1" \\
+         (url)"https://kdl.dev"
     KDL
 
     refute_nil doc
@@ -24,5 +25,6 @@ class TypesTest < Minitest::Test
     assert_kind_of ::KDL::Types::Country, doc.nodes.first.arguments[6]
     assert_kind_of ::KDL::Types::IPV4, doc.nodes.first.arguments[7]
     assert_kind_of ::KDL::Types::IPV6, doc.nodes.first.arguments[8]
+    assert_kind_of ::KDL::Types::URL, doc.nodes.first.arguments[9]
   end
 end
