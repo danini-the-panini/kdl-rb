@@ -9,7 +9,9 @@ class TypesTest < Minitest::Test
          (duration)"P3Y6M4DT12H30M5S" \\
          (currency)"ZAR" \\
          (country-3)"ZAF" \\
-         (country-2)"ZA"
+         (country-2)"ZA" \\
+         (ipv4)"127.0.0.1" \\
+         (ipv6)"3ffe:505:2::1"
     KDL
 
     refute_nil doc
@@ -20,5 +22,7 @@ class TypesTest < Minitest::Test
     assert_kind_of ::KDL::Types::Currency, doc.nodes.first.arguments[4]
     assert_kind_of ::KDL::Types::Country, doc.nodes.first.arguments[5]
     assert_kind_of ::KDL::Types::Country, doc.nodes.first.arguments[6]
+    assert_kind_of ::KDL::Types::IPV4, doc.nodes.first.arguments[7]
+    assert_kind_of ::KDL::Types::IPV6, doc.nodes.first.arguments[8]
   end
 end
