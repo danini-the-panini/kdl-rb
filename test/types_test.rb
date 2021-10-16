@@ -13,7 +13,8 @@ class TypesTest < Minitest::Test
          (ipv4)"127.0.0.1" \\
          (ipv6)"3ffe:505:2::1" \\
          (url)"https://kdl.dev" \\
-         (uuid)"f81d4fae-7dec-11d0-a765-00a0c91e6bf6"
+         (uuid)"f81d4fae-7dec-11d0-a765-00a0c91e6bf6" \\
+         (regex)"asdf"
     KDL
 
     refute_nil doc
@@ -28,5 +29,6 @@ class TypesTest < Minitest::Test
     assert_kind_of ::KDL::Types::IPV6, doc.nodes.first.arguments[8]
     assert_kind_of ::KDL::Types::URL, doc.nodes.first.arguments[9]
     assert_kind_of ::KDL::Types::UUID, doc.nodes.first.arguments[10]
+    assert_kind_of ::KDL::Types::Regex, doc.nodes.first.arguments[11]
   end
 end
