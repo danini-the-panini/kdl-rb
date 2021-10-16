@@ -10,5 +10,6 @@ require 'kdl/types/currency'
 require 'kdl/types/country'
 require 'kdl/types/ip'
 require 'kdl/types/url'
+require 'kdl/types/uuid'
 
 KDL::Types::MAPPING.freeze
