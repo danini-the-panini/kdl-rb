@@ -12,5 +12,6 @@ require 'kdl/types/ip'
 require 'kdl/types/url'
 require 'kdl/types/uuid'
 require 'kdl/types/regex'
+require 'kdl/types/base64'
 
 KDL::Types::MAPPING.freeze
