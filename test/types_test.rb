@@ -14,7 +14,8 @@ class TypesTest < Minitest::Test
          (ipv6)"3ffe:505:2::1" \\
          (url)"https://kdl.dev" \\
          (uuid)"f81d4fae-7dec-11d0-a765-00a0c91e6bf6" \\
-         (regex)"asdf"
+         (regex)"asdf" \\
+         (base64)"U2VuZCByZWluZm9yY2VtZW50cw==\n"
     KDL
 
     refute_nil doc
