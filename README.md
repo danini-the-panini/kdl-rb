@@ -1,6 +1,6 @@
 # KDL
 
-[![Actions Status](https://github.com/jellymann/kdl-rb/workflows/Ruby/badge.svg)](https://github.com/jellymann/kdl-rb/actions)
+[![Actions Status](https://github.com/danini-the-panini/kdl-rb/workflows/Ruby/badge.svg)](https://github.com/danini-the-panini/kdl-rb/actions)
 
 This is a Ruby implementation of the [KDL Document Language](https://kdl.dev)
 
@@ -36,7 +36,7 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/jellymann/kdl-rb.
+Bug reports and pull requests are welcome on GitHub at https://github.com/danini-the-panini/kdl-rb.
 
 
 ## License
