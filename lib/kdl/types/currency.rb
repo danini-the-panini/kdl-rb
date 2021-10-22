@@ -12,11 +12,13 @@ module KDL
         @name = value.fetch(:name, '')
       end
 
-      def self.parse(string)
-        currency = CURRENCIES[string.upcase]
+      def self.call(value, type = 'currency')
+        return nil unless value.is_a? ::KDL::Value::String
+
+        currency = CURRENCIES[value.value.upcase]
         raise ArgumentError, 'invalid currency' if currency.nil?
 
-        new(currency, type: 'currency')
+        new(currency, type: type)
       end
     end
     MAPPING['currency'] = Currency

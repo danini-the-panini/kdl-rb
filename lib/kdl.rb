@@ -8,7 +8,7 @@ require "kdl/types"
 require "kdl/kdl.tab"
 
 module KDL
-  def self.parse_document(input)
-    Parser.new.parse(input)
+  def self.parse_document(input, options = {})
+    Parser.new.parse(input, options)
   end
 end
