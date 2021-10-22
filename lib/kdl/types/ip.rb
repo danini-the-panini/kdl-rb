@@ -4,7 +4,7 @@ module KDL
       def self.call(value, type = ip_type)
         return nil unless value.is_a? ::KDL::Value::String
 
-        ip = IPAddr.new(value.value)
+        ip = ::IPAddr.new(value.value)
         raise ArgumentError, "invalid #{ip_type} address" unless valid_ip?(ip)
 
         new(ip, type: type)
