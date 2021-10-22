@@ -38,6 +38,21 @@ module KDL
       children   == other.children
     end
 
+    def as_type(type, parser = nil)
+      if parser.nil?
+        @type = type
+        self
+      else
+        result = parser.call(self, type)
+
+        return self.as_type(type) if result.nil?
+
+        unless result.is_a?(::KDL::Node)
+          raise ArgumentError, "expected parser to return an instance of ::KDL::Node, got `#{result.class}'"
+        end
+      end
+    end
+
     private
 
     def id_to_s(id)

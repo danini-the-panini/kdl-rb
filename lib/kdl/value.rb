@@ -8,8 +8,19 @@ module KDL
       @type = type
     end
 
-    def as_type(type)
-      self.class.new(value, format: format, type: type)
+    def as_type(type, parser = nil)
+      if parser.nil?
+        self.class.new(value, format: format, type: type)
+      else
+        result = parser.call(self, type)
+        return self.as_type(type) if result.nil?
+
+        unless result.is_a?(::KDL::Value)
+          raise ArgumentError, "expected parser to return an instance of ::KDL::Value, got `#{result.class}'"
+        end
+
+        result
+      end
     end
 
     def to_s
@@ -59,10 +70,6 @@ module KDL
 
       def ==(other)
         other.is_a?(String) && value == other.value
-      end
-
-      def as_type(type)
-        KDL::Types::MAPPING[type]&.parse(value) || super
       end
     end
 

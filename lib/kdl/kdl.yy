@@ -23,7 +23,7 @@ rule
             | node_decl node_children node_term                   { val[0].tap { |x| x.children = val[1] } }
             | node_decl empty_children node_term                  { val[0].tap { |x| x.children = nil } }
   node_decl : identifier                              { KDL::Node.new(val[0]) }
-            | type identifier                         { KDL::Node.new(val[1], type: val[0]) }
+            | type identifier                         { KDL::Node.new(val[1]).as_type(val[0], @type_parsers.fetch(val[0], nil)) }
             | node_decl WS value                      { val[0].tap { |x| x.arguments << val[2] } }
             | node_decl WS SLASHDASH ws_star value    { val[0] }
             | node_decl WS property                   { val[0].tap { |x| x.properties[val[2][0]] = val[2][1] } }
@@ -45,7 +45,7 @@ rule
   property: identifier EQUALS value { [val[0], val[2]] }
 
   value : untyped_value
-        | type untyped_value { val[1].as_type(val[0]) }
+        | type untyped_value { val[1].as_type(val[0], @type_parsers.fetch(val[0], nil)) }
 
   untyped_value : STRING     { KDL::Value::String.new(val[0].value) }
                 | RAWSTRING  { KDL::Value::String.new(val[0].value) }
@@ -65,7 +65,9 @@ rule
   none: { nil }
 
 ---- inner
-  def parse(str)
+
+  def parse(str, options = {})
+    @type_parsers = ::KDL::Types::MAPPING.merge(options.fetch(:type_parsers, {}))
     @tokenizer = ::KDL::Tokenizer.new(str)
     do_parse
   end

@@ -1,11 +1,13 @@
 module KDL
   module Types
     class IP < Value
-      def self.parse(string)
-        value = IPAddr.new(string)
-        raise ArgumentError, "invalid #{ip_type} address" unless valid_ip?(value)
+      def self.call(value, type = ip_type)
+        return nil unless value.is_a? ::KDL::Value::String
 
-        new(value, type: ip_type)
+        ip = IPAddr.new(value.value)
+        raise ArgumentError, "invalid #{ip_type} address" unless valid_ip?(ip)
+
+        new(ip, type: type)
       end
 
       def self.valid_ip?(ip)

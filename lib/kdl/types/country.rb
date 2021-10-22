@@ -13,11 +13,13 @@ module KDL
         @numeric_code = value.fetch(:numeric_code, nil)
       end
 
-      def self.parse(string)
-        country = COUNTRIES3[string.upcase]
+      def self.call(value, type = 'country-3')
+        return nil unless value.is_a? ::KDL::Value::String
+
+        country = COUNTRIES3[value.value.upcase]
         raise ArgumentError, 'invalid country-3' if country.nil?
 
-        new(country, type: 'country-3')
+        new(country, type: type)
       end
 
     end
@@ -29,11 +31,13 @@ module KDL
         super
       end
 
-      def self.parse(string)
-        country = COUNTRIES2[string.upcase]
+      def self.call(value, type = 'country-2')
+        return nil unless value.is_a? ::KDL::Value::String
+
+        country = COUNTRIES2[value.value.upcase]
         raise ArgumentError, 'invalid country-3' if country.nil?
 
-        new(country, type: 'country-2')
+        new(country, type: type)
       end
     end
     MAPPING['country-2'] = Country2

@@ -16,9 +16,11 @@ module KDL
         @seconds = parts.fetch(:seconds, 0)
       end
 
-      def self.parse(string)
-        parts = ISO8601Parser.new(string).parse!
-        new(parts, type: 'duration')
+      def self.call(value, type = 'duration')
+        return nil unless value.is_a? ::KDL::Value::String
+
+        parts = ISO8601Parser.new(value.value).parse!
+        new(parts, type: type)
       end
     end
     MAPPING['duration'] = Duration
