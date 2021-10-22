@@ -7,7 +7,7 @@ module KDL
         return nil unless value.is_a? ::KDL::Value::String
 
         uuid = value.value.downcase
-        raise ArgumentError, "`#{value.value}' is not a valid uuid" unless uuid.match?(RGX)
+        raise ArgumentError, "`#{value.value}' is not a valid uuid" unless uuid =~ RGX
 
         new(uuid, type: type)
       end
