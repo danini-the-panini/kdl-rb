@@ -50,6 +50,8 @@ module KDL
         unless result.is_a?(::KDL::Node)
           raise ArgumentError, "expected parser to return an instance of ::KDL::Node, got `#{result.class}'"
         end
+
+        result
       end
     end
 

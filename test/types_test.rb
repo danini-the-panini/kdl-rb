@@ -1,4 +1,4 @@
-require "test_helper"
+require 'test_helper'
 
 class TypesTest < Minitest::Test
   def test_types
@@ -31,5 +31,34 @@ class TypesTest < Minitest::Test
     assert_kind_of ::KDL::Types::URL, doc.nodes.first.arguments[9]
     assert_kind_of ::KDL::Types::UUID, doc.nodes.first.arguments[10]
     assert_kind_of ::KDL::Types::Regex, doc.nodes.first.arguments[11]
+  end
+
+  def test_custom_types
+    parsers = {
+      'foo' => lambda { |value, type|
+        Foo.new(value.value, type: type) if value.is_a?(KDL::Value)
+      },
+      'bar' => lambda { |node, type|
+        Bar.new(node, type: type) if node.is_a?(KDL::Node)
+      }
+    }
+    doc = KDL.parse_document <<-KDL, type_parsers: parsers
+    (bar)barnode (foo)"foovalue"
+    (foo)foonode (bar)"barvalue"
+    KDL
+    refute_nil doc
+    assert_kind_of Bar, doc.nodes.first
+    assert_kind_of Foo, doc.nodes.first.arguments.first
+    assert_kind_of KDL::Node, doc.nodes[1]
+    assert_kind_of KDL::Value, doc.nodes[1].arguments.first
+  end
+
+  class Foo < KDL::Value
+  end
+
+  class Bar < KDL::Node
+    def initialize(node, type: nil)
+      super(node.name, node.arguments, node.properties, node.children, type: type)
+    end
   end
 end
