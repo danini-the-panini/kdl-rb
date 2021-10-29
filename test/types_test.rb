@@ -15,7 +15,8 @@ class TypesTest < Minitest::Test
          (url)"https://kdl.dev" \\
          (uuid)"f81d4fae-7dec-11d0-a765-00a0c91e6bf6" \\
          (regex)"asdf" \\
-         (base64)"U2VuZCByZWluZm9yY2VtZW50cw==\n"
+         (base64)"U2VuZCByZWluZm9yY2VtZW50cw==\n" \\
+         (decimal)"10000000000000\n"
     KDL
 
     refute_nil doc
@@ -31,6 +32,8 @@ class TypesTest < Minitest::Test
     assert_kind_of ::KDL::Types::URL, doc.nodes.first.arguments[9]
     assert_kind_of ::KDL::Types::UUID, doc.nodes.first.arguments[10]
     assert_kind_of ::KDL::Types::Regex, doc.nodes.first.arguments[11]
+    assert_kind_of ::KDL::Types::Base64, doc.nodes.first.arguments[12]
+    assert_kind_of ::KDL::Types::Decimal, doc.nodes.first.arguments[13]
   end
 
   def test_custom_types

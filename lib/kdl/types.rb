@@ -13,5 +13,6 @@ require 'kdl/types/url'
 require 'kdl/types/uuid'
 require 'kdl/types/regex'
 require 'kdl/types/base64'
+require 'kdl/types/decimal'
 
 KDL::Types::MAPPING.freeze
