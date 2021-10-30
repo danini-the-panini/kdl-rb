@@ -56,6 +56,15 @@ class TypesTest < Minitest::Test
     assert_kind_of KDL::Value, doc.nodes[1].arguments.first
   end
 
+  def test_parse_false
+    doc = KDL.parse_document <<-KDL, parse_types: false
+    node (date-time)"2021-01-01T12:12:12"
+    KDL
+
+    refute_nil doc
+    assert_kind_of ::KDL::Value::String, doc.nodes.first.arguments.first
+  end
+
   class Foo < KDL::Value
   end
 

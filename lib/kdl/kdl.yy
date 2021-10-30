@@ -68,7 +68,11 @@ nodes           : none                      { [] }
 ---- inner
 
   def parse(str, options = {})
-    @type_parsers = ::KDL::Types::MAPPING.merge(options.fetch(:type_parsers, {}))
+    if options.fetch(:parse_types, true)
+      @type_parsers = ::KDL::Types::MAPPING.merge(options.fetch(:type_parsers, {}))
+    else
+      @type_parsers = {}
+    end
     @tokenizer = ::KDL::Tokenizer.new(str)
     do_parse
   end
