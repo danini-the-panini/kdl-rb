@@ -25,4 +25,5 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   spec.add_development_dependency 'racc', '~> 1.5'
+  spec.add_dependency 'simpleidn', '~> 0.2.1'
 end

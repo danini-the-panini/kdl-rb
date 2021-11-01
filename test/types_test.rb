@@ -16,7 +16,9 @@ class TypesTest < Minitest::Test
          (uuid)"f81d4fae-7dec-11d0-a765-00a0c91e6bf6" \\
          (regex)"asdf" \\
          (base64)"U2VuZCByZWluZm9yY2VtZW50cw==\n" \\
-         (decimal)"10000000000000\n"
+         (decimal)"10000000000000\n" \\
+         (hostname)"www.example.com\n" \\
+         (idn-hostname)"xn--bcher-kva.example\n"
     KDL
 
     refute_nil doc
@@ -34,6 +36,8 @@ class TypesTest < Minitest::Test
     assert_kind_of ::KDL::Types::Regex, doc.nodes.first.arguments[11]
     assert_kind_of ::KDL::Types::Base64, doc.nodes.first.arguments[12]
     assert_kind_of ::KDL::Types::Decimal, doc.nodes.first.arguments[13]
+    assert_kind_of ::KDL::Types::Hostname, doc.nodes.first.arguments[14]
+    assert_kind_of ::KDL::Types::IDNHostname, doc.nodes.first.arguments[15]
   end
 
   def test_custom_types
