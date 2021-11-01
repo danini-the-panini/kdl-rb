@@ -19,7 +19,8 @@ class TypesTest < Minitest::Test
          (decimal)"10000000000000" \\
          (hostname)"www.example.com" \\
          (idn-hostname)"xn--bcher-kva.example" \\
-         (email)"simple@example.com"
+         (email)"simple@example.com" \\
+         (idn-email)"🌈@xn--9ckb.com"
     KDL
 
     refute_nil doc
@@ -40,6 +41,7 @@ class TypesTest < Minitest::Test
     assert_kind_of ::KDL::Types::Hostname, doc.nodes.first.arguments[14]
     assert_kind_of ::KDL::Types::IDNHostname, doc.nodes.first.arguments[15]
     assert_kind_of ::KDL::Types::Email, doc.nodes.first.arguments[16]
+    assert_kind_of ::KDL::Types::IDNEmail, doc.nodes.first.arguments[17]
   end
 
   def test_custom_types

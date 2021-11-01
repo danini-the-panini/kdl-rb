@@ -2,13 +2,15 @@ module KDL
   module Types
     class Email < Value
       class Parser
-        def initialize(string)
+        def initialize(string, idn: false)
           @string = string
-          @tokenizer = Tokenizer.new(string)
+          @idn = idn
+          @tokenizer = Tokenizer.new(string, idn: idn)
         end
 
         def parse
           local = ''
+          ascii_domain = nil
           domain = nil
           context = :start
 
@@ -41,7 +43,9 @@ module KDL
               case context
               when :after_at
                 raise ArgumentError, "invalid hostname #{value}" unless Hostname.valid_hostname?(value)
-                domain = value
+
+                ascii_domain = value
+                domain = @idn ? SimpleIDN.to_unicode(value) : value
                 context = :after_domain
               else
                 raise ArgumentError, "invalid email #{@string} (unexpected domain at #{context})"
@@ -49,11 +53,11 @@ module KDL
             when :end
               case context
               when :after_domain
-                if local.length > 64
-                  raise ArgumentError, "invalid email #{@string} (local part length #{local.length} exceeds maximaum of 64)"
+                if local.size > 64
+                  raise ArgumentError, "invalid email #{@string} (local part length #{local.size} exceeds maximaum of 64)"
                 end
 
-                return [local, domain]
+                return [local, domain, ascii_domain]
               else
                 raise ArgumentError, "invalid email #{@string} (unexpected end at #{context})"
               end
@@ -63,17 +67,21 @@ module KDL
       end
 
       class Tokenizer
-        def initialize(string)
+        LOCAL_PART_ASCII = /[a-zA-Z0-9!#\$%&'*+\-\/=?\^_`{|}~]/
+        LOCAL_PART_IDN = /[^\x00-\x1f\s".@]/
+
+        def initialize(string, idn: false)
           @string = string
+          @idn = idn
           @index = 0
           @after_at = false
         end
 
         def next_token
           if @after_at
-            if @index < @string.length
+            if @index < @string.size
               domain_start = @index
-              @index = @string.length
+              @index = @string.size
               return [:domain, @string[domain_start..-1]]
             else
               return [:end, nil]
@@ -98,7 +106,7 @@ module KDL
               when '"'
                 @context = :quote
                 @index += 1
-              when LOCAL_PART_CHARS
+              when local_part_chars
                 @context = :part
                 @buffer += c
                 @index += 1
@@ -107,7 +115,7 @@ module KDL
               end
             when :part
               case c
-              when LOCAL_PART_CHARS
+              when local_part_chars
                 @buffer += c
                 @index += 1
               when '.', '@'
@@ -129,6 +137,10 @@ module KDL
               end
             end
           end
+        end
+
+        def local_part_chars
+          @idn ? LOCAL_PART_IDN : LOCAL_PART_ASCII
         end
       end
     end

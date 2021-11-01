@@ -55,4 +55,14 @@ class EmailTest < Minitest::Test
       assert_raises { KDL::Types::Email.call(::KDL::Value::String.new(email)) }
     end
   end
+
+  def test_idn_email
+    value = KDL::Types::IDNEmail.call(::KDL::Value::String.new('🌈@xn--9ckb.com'))
+    assert_equal '🌈@xn--9ckb.com', value.value
+    assert_equal '🌈', value.local
+    assert_equal 'ツッ.com', value.domain
+    assert_equal 'xn--9ckb.com', value.ascii_domain
+
+    assert_raises { KDL::Types::IDNEmail.call(::KDL::Value::String.new('not an email')) }
+  end
 end
