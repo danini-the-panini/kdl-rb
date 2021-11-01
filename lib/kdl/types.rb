@@ -15,5 +15,6 @@ require 'kdl/types/regex'
 require 'kdl/types/base64'
 require 'kdl/types/decimal'
 require 'kdl/types/hostname'
+require 'kdl/types/email'
 
 KDL::Types::MAPPING.freeze
