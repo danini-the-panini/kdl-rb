@@ -3,7 +3,7 @@ require 'simpleidn'
 module KDL
   module Types
     class Hostname < Value
-      PART_RGX = /^[a-z0-9_\-]{1,63}$/i
+      PART_RGX = /^[a-z0-9_][a-z0-9_\-]{0,62}$/i
 
       def self.call(value, type = 'hostname')
         raise ArgumentError, "invalid hostname #{value}" unless valid_hostname?(value.value)
@@ -19,6 +19,8 @@ module KDL
       end
 
       def self.valid_hostname?(hostname)
+        return false if hostname.length > 253
+
         hostname.split('.').all? { |part| valid_hostname_part?(part) }
       end
     end
@@ -33,10 +35,18 @@ module KDL
       end
 
       def self.call(value, type = 'idn-hostname')
-        parts = value.value.split('.')
-        raise ArgumentError, "invalid hostname #{value}" unless valid_hostname?(value.value)
+        is_ascii = value.value.split('.').any? { |x| x.start_with?('xn--') }
 
-        new(SimpleIDN.to_unicode(value.value), type: type, ascii_value: value.value)
+        if is_ascii
+          unicode = SimpleIDN.to_unicode(value.value)
+          ascii = value.value
+        else
+          ascii = SimpleIDN.to_ascii(value.value)
+          unicode = value.value
+        end
+        raise ArgumentError, "invalid hostname #{value}" unless valid_hostname?(ascii)
+
+        new(unicode, type: type, ascii_value: ascii)
       end
     end
     MAPPING['idn-hostname'] = IDNHostname
