@@ -21,17 +21,21 @@ module KDL
     MAPPING['email'] = Email
 
     class IDNEmail < Email
-      attr_reader :ascii_domain
+      attr_reader :unicode_domain
 
-      def initialize(value, ascii_domain:, **kwargs)
+      def initialize(value, unicode_domain:, **kwargs)
         super(value, **kwargs)
-        @ascii_domain = ascii_domain
+        @unicode_domain = unicode_domain
       end
 
       def self.call(value, type = 'email')
-        local, domain, ascii_domain = Email::Parser.new(value.value, idn: true).parse
+        local, domain, unicode_domain = Email::Parser.new(value.value, idn: true).parse
 
-        new(value.value, type: type, local: local, domain: domain, ascii_domain: ascii_domain)
+        new("#{local}@#{domain}", type: type, local: local, domain: domain, unicode_domain: unicode_domain)
+      end
+
+      def unicode_value
+        "#{local}@#{unicode_domain}"
       end
     end
     MAPPING['idn-email'] = IDNEmail
