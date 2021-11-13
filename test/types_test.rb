@@ -13,6 +13,7 @@ class TypesTest < Minitest::Test
          (ipv4)"127.0.0.1" \\
          (ipv6)"3ffe:505:2::1" \\
          (url)"https://kdl.dev" \\
+         (url-reference)"/foo/bar" \\
          (uuid)"f81d4fae-7dec-11d0-a765-00a0c91e6bf6" \\
          (regex)"asdf" \\
          (base64)"U2VuZCByZWluZm9yY2VtZW50cw==\n" \\
@@ -24,24 +25,26 @@ class TypesTest < Minitest::Test
     KDL
 
     refute_nil doc
-    assert_kind_of ::KDL::Types::DateTime, doc.nodes.first.arguments[0]
-    assert_kind_of ::KDL::Types::Date, doc.nodes.first.arguments[1]
-    assert_kind_of ::KDL::Types::Time, doc.nodes.first.arguments[2]
-    assert_kind_of ::KDL::Types::Duration, doc.nodes.first.arguments[3]
-    assert_kind_of ::KDL::Types::Currency, doc.nodes.first.arguments[4]
-    assert_kind_of ::KDL::Types::Country, doc.nodes.first.arguments[5]
-    assert_kind_of ::KDL::Types::Country, doc.nodes.first.arguments[6]
-    assert_kind_of ::KDL::Types::IPV4, doc.nodes.first.arguments[7]
-    assert_kind_of ::KDL::Types::IPV6, doc.nodes.first.arguments[8]
-    assert_kind_of ::KDL::Types::URL, doc.nodes.first.arguments[9]
-    assert_kind_of ::KDL::Types::UUID, doc.nodes.first.arguments[10]
-    assert_kind_of ::KDL::Types::Regex, doc.nodes.first.arguments[11]
-    assert_kind_of ::KDL::Types::Base64, doc.nodes.first.arguments[12]
-    assert_kind_of ::KDL::Types::Decimal, doc.nodes.first.arguments[13]
-    assert_kind_of ::KDL::Types::Hostname, doc.nodes.first.arguments[14]
-    assert_kind_of ::KDL::Types::IDNHostname, doc.nodes.first.arguments[15]
-    assert_kind_of ::KDL::Types::Email, doc.nodes.first.arguments[16]
-    assert_kind_of ::KDL::Types::IDNEmail, doc.nodes.first.arguments[17]
+    i = -1
+    assert_kind_of ::KDL::Types::DateTime, doc.nodes.first.arguments[i += 1]
+    assert_kind_of ::KDL::Types::Date, doc.nodes.first.arguments[i += 1]
+    assert_kind_of ::KDL::Types::Time, doc.nodes.first.arguments[i += 1]
+    assert_kind_of ::KDL::Types::Duration, doc.nodes.first.arguments[i += 1]
+    assert_kind_of ::KDL::Types::Currency, doc.nodes.first.arguments[i += 1]
+    assert_kind_of ::KDL::Types::Country, doc.nodes.first.arguments[i += 1]
+    assert_kind_of ::KDL::Types::Country, doc.nodes.first.arguments[i += 1]
+    assert_kind_of ::KDL::Types::IPV4, doc.nodes.first.arguments[i += 1]
+    assert_kind_of ::KDL::Types::IPV6, doc.nodes.first.arguments[i += 1]
+    assert_kind_of ::KDL::Types::URL, doc.nodes.first.arguments[i += 1]
+    assert_kind_of ::KDL::Types::URLReference, doc.nodes.first.arguments[i += 1]
+    assert_kind_of ::KDL::Types::UUID, doc.nodes.first.arguments[i += 1]
+    assert_kind_of ::KDL::Types::Regex, doc.nodes.first.arguments[i += 1]
+    assert_kind_of ::KDL::Types::Base64, doc.nodes.first.arguments[i += 1]
+    assert_kind_of ::KDL::Types::Decimal, doc.nodes.first.arguments[i += 1]
+    assert_kind_of ::KDL::Types::Hostname, doc.nodes.first.arguments[i += 1]
+    assert_kind_of ::KDL::Types::IDNHostname, doc.nodes.first.arguments[i += 1]
+    assert_kind_of ::KDL::Types::Email, doc.nodes.first.arguments[i += 1]
+    assert_kind_of ::KDL::Types::IDNEmail, doc.nodes.first.arguments[i += 1]
   end
 
   def test_custom_types
