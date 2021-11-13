@@ -15,12 +15,12 @@ class HostnameTest < Minitest::Test
 
   def test_idn_hostname
     value = KDL::Types::IDNHostname.call(::KDL::Value::String.new('xn--bcher-kva.example'))
-    assert_equal 'bücher.example', value.value
-    assert_equal 'xn--bcher-kva.example', value.ascii_value
+    assert_equal 'xn--bcher-kva.example', value.value
+    assert_equal 'bücher.example', value.unicode_value
 
     value = KDL::Types::IDNHostname.call(::KDL::Value::String.new('bücher.example'))
-    assert_equal 'bücher.example', value.value
-    assert_equal 'xn--bcher-kva.example', value.ascii_value
+    assert_equal 'xn--bcher-kva.example', value.value
+    assert_equal 'bücher.example', value.unicode_value
 
     assert_raises { KDL::Types::IDNHostname.call(::KDL::Value::String.new('not an idn hostname')) }
   end

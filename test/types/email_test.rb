@@ -59,9 +59,16 @@ class EmailTest < Minitest::Test
   def test_idn_email
     value = KDL::Types::IDNEmail.call(::KDL::Value::String.new('🌈@xn--9ckb.com'))
     assert_equal '🌈@xn--9ckb.com', value.value
+    assert_equal '🌈@ツッ.com', value.unicode_value
     assert_equal '🌈', value.local
-    assert_equal 'ツッ.com', value.domain
-    assert_equal 'xn--9ckb.com', value.ascii_domain
+    assert_equal 'ツッ.com', value.unicode_domain
+    assert_equal 'xn--9ckb.com', value.domain
+    value = KDL::Types::IDNEmail.call(::KDL::Value::String.new('🌈@ツッ.com'))
+    assert_equal '🌈@xn--9ckb.com', value.value
+    assert_equal '🌈@ツッ.com', value.unicode_value
+    assert_equal '🌈', value.local
+    assert_equal 'ツッ.com', value.unicode_domain
+    assert_equal 'xn--9ckb.com', value.domain
 
     assert_raises { KDL::Types::IDNEmail.call(::KDL::Value::String.new('not an email')) }
   end

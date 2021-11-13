@@ -1,3 +1,5 @@
+require_relative '../hostname/validator'
+
 module KDL
   module Types
     class Email < Value
@@ -10,7 +12,7 @@ module KDL
 
         def parse
           local = ''
-          ascii_domain = nil
+          unicode_domain = nil
           domain = nil
           context = :start
 
@@ -42,10 +44,11 @@ module KDL
             when :domain
               case context
               when :after_at
-                raise ArgumentError, "invalid hostname #{value}" unless Hostname.valid_hostname?(value)
+                validator = (@idn ? IDNHostname : Hostname)::Validator.new(value)
+                raise ArgumentError, "invalid hostname #{value}" unless validator.valid?
 
-                ascii_domain = value
-                domain = @idn ? SimpleIDN.to_unicode(value) : value
+                unicode_domain = validator.unicode
+                domain = validator.ascii
                 context = :after_domain
               else
                 raise ArgumentError, "invalid email #{@string} (unexpected domain at #{context})"
@@ -57,7 +60,7 @@ module KDL
                   raise ArgumentError, "invalid email #{@string} (local part length #{local.size} exceeds maximaum of 64)"
                 end
 
-                return [local, domain, ascii_domain]
+                return [local, domain, unicode_domain]
               else
                 raise ArgumentError, "invalid email #{@string} (unexpected end at #{context})"
               end
