@@ -155,11 +155,11 @@ module KDL
           when String
             encode(value)
           when Array, Hash
-            value.to_a
-                 .flatten
-                 .compact
-                 .map { |v| encode(v) }
-                 .then { |v| v.empty? ? nil : v.join(',') }
+            result = value.to_a
+                          .flatten
+                          .compact
+                          .map { |v| encode(v) }
+            result.empty? ? nil : result.join(',')
           end
         end
 
