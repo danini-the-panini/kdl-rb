@@ -70,8 +70,8 @@ module KDL
       end
 
       class Tokenizer
-        LOCAL_PART_ASCII = /[a-zA-Z0-9!#\$%&'*+\-\/=?\^_`{|}~]/
-        LOCAL_PART_IDN = /[^\x00-\x1f\s".@]/
+        LOCAL_PART_ASCII = %r{[a-zA-Z0-9!#$%&'*+\-/=?^_`{|}~]}.freeze
+        LOCAL_PART_IDN = /[^\x00-\x1f\s".@]/.freeze
 
         def initialize(string, idn: false)
           @string = string
