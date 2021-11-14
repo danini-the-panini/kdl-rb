@@ -67,6 +67,7 @@ module KDL
       @line = 1
       @column = 1
       @type_context = false
+      @last_token = nil
     end
 
     def next_token
