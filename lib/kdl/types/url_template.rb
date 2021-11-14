@@ -1,8 +1,8 @@
 module KDL
   module Types
     class URLTemplate < Value
-      UNRESERVED = /[a-zA-Z0-9\-._~]/
-      RESERVED = /[:\/?#\[\]@!$&'()*+,;=]/
+      UNRESERVED = /[a-zA-Z0-9\-._~]/.freeze
+      RESERVED = %r{[:/?#\[\]@!$&'()*+,;=]}.freeze
 
       def self.call(value, type = 'url-template')
         return nil unless value.is_a? ::KDL::Value::String
@@ -42,14 +42,13 @@ module KDL
           expansion_type = nil
           loop do
             c = @string[@index]
-            #puts "#{@index}/#{context} => #{c}"
             case context
             when nil
               case c
               when '{'
                 context = :expansion
                 buffer = ''
-                n = @string[@index+1]
+                n = @string[@index + 1]
                 expansion_type = case n
                                  when '+' then ReservedExpansion
                                  when '#' then FragmentExpansion
