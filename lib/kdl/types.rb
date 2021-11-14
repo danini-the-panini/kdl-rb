@@ -17,5 +17,6 @@ require 'kdl/types/decimal'
 require 'kdl/types/hostname'
 require 'kdl/types/email'
 require 'kdl/types/irl'
+require 'kdl/types/url_template'
 
 KDL::Types::MAPPING.freeze
