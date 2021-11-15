@@ -10,6 +10,7 @@ class TypesTest < Minitest::Test
          (currency)"ZAR" \\
          (country-3)"ZAF" \\
          (country-2)"ZA" \\
+         (country-subdivision)"ZA-GP" \\
          (ipv4)"127.0.0.1" \\
          (ipv6)"3ffe:505:2::1" \\
          (url)"https://kdl.dev" \\
@@ -34,8 +35,9 @@ class TypesTest < Minitest::Test
     assert_kind_of ::KDL::Types::Time, doc.nodes.first.arguments[i += 1]
     assert_kind_of ::KDL::Types::Duration, doc.nodes.first.arguments[i += 1]
     assert_kind_of ::KDL::Types::Currency, doc.nodes.first.arguments[i += 1]
-    assert_kind_of ::KDL::Types::Country, doc.nodes.first.arguments[i += 1]
-    assert_kind_of ::KDL::Types::Country, doc.nodes.first.arguments[i += 1]
+    assert_kind_of ::KDL::Types::Country3, doc.nodes.first.arguments[i += 1]
+    assert_kind_of ::KDL::Types::Country2, doc.nodes.first.arguments[i += 1]
+    assert_kind_of ::KDL::Types::CountrySubdivision, doc.nodes.first.arguments[i += 1]
     assert_kind_of ::KDL::Types::IPV4, doc.nodes.first.arguments[i += 1]
     assert_kind_of ::KDL::Types::IPV6, doc.nodes.first.arguments[i += 1]
     assert_kind_of ::KDL::Types::URL, doc.nodes.first.arguments[i += 1]
