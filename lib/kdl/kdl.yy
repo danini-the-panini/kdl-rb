@@ -10,13 +10,14 @@ class KDL::Parser
         SEMICOLON
         EOF
         SLASHDASH
+        ESCLINE
 rule
   document  : nodes { KDL::Document.new(val[0]) }
             | linespaces { KDL::Document.new([])}
 
 nodes           : none                      { [] }
-                | linespace_star node       { [val[1]] }
-                | linespace_star empty_node { [] }
+                | linespaces node       { [val[1]] }
+                | linespaces empty_node { [] }
                 | nodes node                { [*val[0], val[1]] }
                 | nodes empty_node          { val[0] }
   node          : untyped_node      { val[0] }
@@ -25,15 +26,15 @@ nodes           : none                      { [] }
                 | node_decl node_children node_term  { val[0].tap { |x| x.children = val[1] } }
                 | node_decl empty_children node_term { val[0].tap { |x| x.children = [] } }
   node_decl     : identifier                              { KDL::Node.new(val[0]) }
-                | node_decl WS value                      { val[0].tap { |x| x.arguments << val[2] } }
-                | node_decl WS SLASHDASH ws_star value    { val[0] }
-                | node_decl WS property                   { val[0].tap { |x| x.properties[val[2][0]] = val[2][1] } }
-                | node_decl WS SLASHDASH ws_star property { val[0] }
+                | node_decl ws value                      { val[0].tap { |x| x.arguments << val[2] } }
+                | node_decl ws SLASHDASH ws_star value    { val[0] }
+                | node_decl ws property                   { val[0].tap { |x| x.properties[val[2][0]] = val[2][1] } }
+                | node_decl ws SLASHDASH ws_star property { val[0] }
   empty_node    : SLASHDASH ws_star node
   node_children : ws_star LBRACE nodes RBRACE { val[2] }
-                | ws_star LBRACE linespace_star RBRACE { [] }
+                | ws_star LBRACE linespaces RBRACE { [] }
   empty_children: SLASHDASH node_children
-                | WS empty_children
+                | ws empty_children
   node_term: linespaces | semicolon_term
   semicolon_term: SEMICOLON | SEMICOLON linespaces
 
@@ -58,10 +59,10 @@ nodes           : none                      { [] }
   boolean : TRUE  { true }
           | FALSE { false }
 
-  ws_star: none | WS
+  ws: WS | ESCLINE | WS ESCLINE | ESCLINE WS | WS ESCLINE WS
+  ws_star: none | ws
   linespace: WS | NEWLINE | EOF
   linespaces: linespace | linespaces linespace
-  linespace_star: none | linespaces
 
   none: { nil }
 
