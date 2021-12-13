@@ -358,7 +358,7 @@ module KDL
     end
 
     def parse_float(s)
-      match, _, fraction, exponent = *s.match(/^([-+]?[\d_]+)(?:\.(\d+))?(?:[eE]([-+]?[\d_]+))?$/)
+      match, _, fraction, exponent = *s.match(/^([-+]?[\d_]+)(?:\.([\d_]+))?(?:[eE]([-+]?[\d_]+))?$/)
       raise_error "Invalid floating point value #{s}" if match.nil?
 
       s = munch_underscores(s)
