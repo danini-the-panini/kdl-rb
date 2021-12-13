@@ -243,11 +243,9 @@ class ParserTest < Minitest::Test
   end
 
   def test_escline
-    # assert_equal ::KDL::Document.new([::KDL::Node.new('foo')]), @parser.parse("\\\nfoo")
-    # assert_equal ::KDL::Document.new([::KDL::Node.new('foo')]), @parser.parse("\\\n  foo")
-    # assert_equal ::KDL::Document.new([::KDL::Node.new('foo')]), @parser.parse("\\  \t \nfoo")
-    assert_equal ::KDL::Document.new([::KDL::Node.new('foo')]), @parser.parse("\\ // test \nfoo")
-    assert_equal ::KDL::Document.new([::KDL::Node.new('foo')]), @parser.parse("\\ // test \n  foo")
+    assert_equal ::KDL::Document.new([::KDL::Node.new('node', [::KDL::Value.from(1)])]), @parser.parse("node\\\n  1")
+    assert_raises { @parser.parse("node\\\nnode2") }
+    assert_raises { @parser.parse("node\n  \\\n//comment\n  node2") }
   end
 
   def test_whitespace

@@ -125,15 +125,13 @@ module KDL
             end
           when '\\'
             t = Tokenizer.new(@str, @index + 1)
-            la = t.next_token[0]
-            if la == :NEWLINE
+            la = t.next_token
+            if la[0] == :NEWLINE || la[0] == :EOF || (la[0] == :WS && (lan = t.next_token[0]) == :NEWLINE || lan == :EOF)
               @index = t.index
               new_line
-            elsif la == :WS && (lan = t.next_token[0]) == :NEWLINE
-              @index = t.index
-              new_line
+              return token(:ESCLINE, "\\#{la[1].value}")
             else
-              raise_error "Unexpected '\\'"
+              raise_error "Unexpected '\\' (#{la[0]})"
             end
           when *SYMBOLS.keys
             return token(SYMBOLS[c], c).tap { traverse(1) }
@@ -293,18 +291,6 @@ module KDL
           if WHITEPACE.include?(c)
             traverse(1)
             @buffer += c
-          elsif c == "\\"
-            t = Tokenizer.new(@str, @index + 1)
-            la = t.next_token[0]
-            if la == :NEWLINE
-              @index = t.index
-              new_line
-            elsif (la == :WS && (lan = t.next_token[0]) == :NEWLINE)
-              @index = t.index
-              new_line
-            else
-              raise_error "Unexpected '\\'"
-            end
           elsif c == "/" && @str[@index + 1] == '*'
             self.context = :multi_line_comment
             @comment_nesting = 1

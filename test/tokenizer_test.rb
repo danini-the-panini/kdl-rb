@@ -57,6 +57,12 @@ class TokenizerTest < Minitest::Test
     assert_equal t(:WS, "    \t"), ::KDL::Tokenizer.new("    \t").next_token
   end
 
+  def test_escline
+    assert_equal t(:ESCLINE, "\\\n"), ::KDL::Tokenizer.new("\\\n").next_token
+    assert_equal t(:ESCLINE, "\\\n"), ::KDL::Tokenizer.new("\\\n//some comment").next_token
+    assert_equal t(:ESCLINE, "\\\n"), ::KDL::Tokenizer.new("\\\n //some comment").next_token
+  end
+
   def test_multiple_tokens
     tokenizer = ::KDL::Tokenizer.new("node 1 \"two\" a=3")
 
@@ -177,7 +183,9 @@ class TokenizerTest < Minitest::Test
     KDL
 
     assert_equal t(:IDENT, 'title'), tokenizer.next_token
-    assert_equal t(:WS, '   ', 1, 6), tokenizer.next_token
+    assert_equal t(:WS, ' ', 1, 6), tokenizer.next_token
+    assert_equal t(:ESCLINE, "\\\n", 1, 7), tokenizer.next_token
+    assert_equal t(:WS, '  ', 2, 1), tokenizer.next_token
     assert_equal t(:STRING, 'Some title', 2, 3), tokenizer.next_token
     assert_equal t(:NEWLINE, "\n", 2, 15), tokenizer.next_token
     assert_equal t(:EOF, :EOF, 3, 1), tokenizer.next_token
