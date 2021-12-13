@@ -2,7 +2,7 @@ module KDL
   class Node
     attr_accessor :name, :arguments, :properties, :children, :type
 
-    def initialize(name, arguments = [], properties = {}, children = nil, type: nil)
+    def initialize(name, arguments = [], properties = {}, children = [], type: nil)
       @name = name
       @arguments = arguments
       @properties = properties
@@ -19,11 +19,9 @@ module KDL
       unless properties.empty?
         s += " #{properties.map { |k, v| "#{id_to_s k}=#{v}" }.join(' ')}"
       end
-      unless children.nil?
+      unless children.empty?
         s += " {\n"
-        unless children.empty?
-          s += children.map { |c| "#{c.to_s(level + 1)}\n" }.join("\n")
-        end
+        s += children.map { |c| "#{c.to_s(level + 1)}\n" }.join("\n")
         s += "#{indent}}"
       end
       s

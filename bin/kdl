@@ -1,0 +1,8 @@
+#!/usr/bin/env ruby
+
+require "bundler/setup"
+require "kdl"
+
+system 'bin/rake racc'
+
+puts KDL.parse_document(ARGF.read).to_s

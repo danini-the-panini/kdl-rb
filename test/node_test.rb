@@ -8,31 +8,34 @@ class NodeTest < Minitest::Test
   end
 
   def test_nested_to_s
-    value = ::KDL::Node.new("a1", [v("a"), v(1)], {}, [
-      ::KDL::Node.new("b1", [v("b"), v(1)], {}, [
+    value = ::KDL::Node.new("a1", [v("a"), v(1)], { a: v(1) }, [
+      ::KDL::Node.new("b1", [v("b"), v(1, "foo")], {}, [
         ::KDL::Node.new("c1", [v("c"), v(1)])
       ]),
-      ::KDL::Node.new("b2", [v("b"), v(2)], {}, [
+      ::KDL::Node.new("b2", [v("b")], { c: v(2, "bar") }, [
         ::KDL::Node.new("c2", [v("c"), v(2)])
-      ])
+      ]),
+      ::KDL::Node.new("b3", [], {}, [], type: "baz"),
     ])
 
     assert_equal <<~KDL.strip, value.to_s
-      a1 "a" 1 {
-          b1 "b" 1 {
+      a1 "a" 1 a=1 {
+          b1 "b" (foo)1 {
               c1 "c" 1
           }
 
-          b2 "b" 2 {
+          b2 "b" c=(bar)2 {
               c2 "c" 2
           }
+
+          (baz)b3
       }
     KDL
   end
 
   private
 
-  def v(x)
-    ::KDL::Value.from(x)
+  def v(x, t=nil)
+    ::KDL::Value.from(x).then { |v| t ? v.as_type(t) : v }
   end
 end
