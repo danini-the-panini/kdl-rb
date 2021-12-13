@@ -21,9 +21,9 @@ nodes           : none                      { [] }
                 | nodes empty_node          { val[0] }
   node          : untyped_node      { val[0] }
                 | type untyped_node { val[1].as_type(val[0], @type_parsers.fetch(val[0], nil)) }
-  untyped_node  : node_decl node_term                { val[0].tap { |x| x.children = nil } }
+  untyped_node  : node_decl node_term                { val[0].tap { |x| x.children = [] } }
                 | node_decl node_children node_term  { val[0].tap { |x| x.children = val[1] } }
-                | node_decl empty_children node_term { val[0].tap { |x| x.children = nil } }
+                | node_decl empty_children node_term { val[0].tap { |x| x.children = [] } }
   node_decl     : identifier                              { KDL::Node.new(val[0]) }
                 | node_decl WS value                      { val[0].tap { |x| x.arguments << val[2] } }
                 | node_decl WS SLASHDASH ws_star value    { val[0] }

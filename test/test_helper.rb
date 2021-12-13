@@ -25,7 +25,7 @@ class Minitest::Test
                              args.map { |a| ::KDL::Value.from(a) },
                              kwargs.map { |k, v| [k.to_s, ::KDL::Value.from(v) ]}
                                    .to_h)
-      node.children = block_given? ? Nodes.nodes!(&block) : nil
+      node.children = block_given? ? Nodes.nodes!(&block) : []
       @children << node
     end
     alias _ method_missing

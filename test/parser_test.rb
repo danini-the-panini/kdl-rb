@@ -86,6 +86,15 @@ class ParserTest < Minitest::Test
                  @parser.parse("node /-{\nnode2\n}")
   end
 
+  def test_empty_children
+    assert_equal ::KDL::Document.new([::KDL::Node.new('node')]),
+                 @parser.parse('node {}')
+    assert_equal ::KDL::Document.new([::KDL::Node.new('node')]),
+                 @parser.parse("node {\n  /-node2\n}")
+    assert_equal ::KDL::Document.new([::KDL::Node.new('node')]),
+                 @parser.parse("node /-{\n  node2\n}")
+  end
+
   def test_string
     assert_equal ::KDL::Document.new([::KDL::Node.new('node', [::KDL::Value::String.new("")])]),
                  @parser.parse('node ""')
@@ -397,7 +406,8 @@ class ParserTest < Minitest::Test
     KDL
 
     nodes = nodes! {
-      mynode "not commented"
+      mynode("not commented") {
+      }
     }
     assert_equal nodes, doc
   end
