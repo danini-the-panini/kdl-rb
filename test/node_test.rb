@@ -36,6 +36,8 @@ class NodeTest < Minitest::Test
   private
 
   def v(x, t=nil)
-    ::KDL::Value.from(x).then { |v| t ? v.as_type(t) : v }
+    val = ::KDL::Value.from(x)
+    return val.as_type(t) if t
+    val
   end
 end
