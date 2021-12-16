@@ -10,7 +10,7 @@ module KDL
 
         unless RGX.match?(value.value)
             raise ArgumentError, "invalid base64: #{value.value}"
-      end
+        end
 
         data = ::Base64.decode64(value.value)
         new(data, type: type)
