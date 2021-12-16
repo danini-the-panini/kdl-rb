@@ -53,7 +53,7 @@ module KDL
                                  when '+' then ReservedExpansion
                                  when '#' then FragmentExpansion
                                  when '.' then LabelExpansion
-                                 when '/' then PathExpantion
+                                 when '/' then PathExpansion
                                  when ';' then ParameterExpansion
                                  when '?' then QueryExpansion
                                  when '&' then QueryContinuation
@@ -275,7 +275,7 @@ module KDL
         end
       end
 
-      class PathExpantion < StringExpansion
+      class PathExpansion < StringExpansion
         def prefix
           '/'
         end
