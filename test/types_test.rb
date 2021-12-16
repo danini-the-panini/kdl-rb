@@ -17,7 +17,7 @@ class TypesTest < Minitest::Test
          (url-reference)"/foo/bar" \\
          (uuid)"f81d4fae-7dec-11d0-a765-00a0c91e6bf6" \\
          (regex)"asdf" \\
-         (base64)"U2VuZCByZWluZm9yY2VtZW50cw==\n" \\
+         (base64)"U2VuZCByZWluZm9yY2VtZW50cw==" \\
          (decimal)"10000000000000" \\
          (hostname)"www.example.com" \\
          (idn-hostname)"xn--bcher-kva.example" \\
