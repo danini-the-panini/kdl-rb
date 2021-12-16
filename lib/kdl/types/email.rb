@@ -12,6 +12,8 @@ module KDL
       end
 
       def self.call(value, type = 'email')
+        return nil unless value.is_a? ::KDL::Value::String
+
         local, domain = Parser.new(value.value).parse
 
         new(value.value, type: type, local: local, domain: domain)
@@ -29,6 +31,8 @@ module KDL
       end
 
       def self.call(value, type = 'email')
+        return nil unless value.is_a? ::KDL::Value::String
+
         local, domain, unicode_domain = Email::Parser.new(value.value, idn: true).parse
 
         new("#{local}@#{domain}", type: type, local: local, domain: domain, unicode_domain: unicode_domain)

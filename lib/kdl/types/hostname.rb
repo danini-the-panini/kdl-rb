@@ -4,6 +4,8 @@ module KDL
   module Types
     class Hostname < Value
       def self.call(value, type = 'hostname')
+        return nil unless value.is_a? ::KDL::Value::String
+
         validator = Validator.new(value.value)
         raise ArgumentError, "invalid hostname #{value}" unless validator.valid?
 
@@ -21,6 +23,8 @@ module KDL
       end
 
       def self.call(value, type = 'idn-hostname')
+        return nil unless value.is_a? ::KDL::Value::String
+
         validator = Validator.new(value.value)
         raise ArgumentError, "invalid hostname #{value}" unless validator.valid?
 
