@@ -441,10 +441,12 @@ class ParserTest < Minitest::Test
     doc = @parser.parse <<~KDL
       "!@#$@$%Q#$%~@!40" "1.2.3" "!!!!!"=true
       foo123~!@#$%^&*.:'|?+ "weeee"
+      - 1
     KDL
     nodes = nodes! {
       _ "!@#$@$%Q#$%~@!40", "1.2.3", "!!!!!": true
       _ "foo123~!@#$%^&*.:'|?+", "weeee"
+      _ "-", 1
     }
     assert_equal nodes, doc
   end

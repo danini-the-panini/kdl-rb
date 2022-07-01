@@ -120,8 +120,8 @@ module KDL
                              end
             else
               self.context = :decimal
-              traverse(1)
               @buffer = c
+              traverse(1)
             end
           when '\\'
             t = Tokenizer.new(@str, @index + 1)
@@ -341,6 +341,12 @@ module KDL
       return parse_float(s) if s =~ /[.E]/i
 
       token(:INTEGER, Integer(munch_underscores(s), 10), format: '%d')
+    rescue
+      if s[0] =~ INITIAL_IDENTIFIER_CHARS && s[1..-1].each_char.all? { |c| c =~ IDENTIFIER_CHARS }
+        token(:IDENT, s)
+      else
+        raise
+      end
     end
 
     def parse_float(s)
