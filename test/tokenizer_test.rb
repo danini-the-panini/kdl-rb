@@ -4,6 +4,8 @@ class TokenizerTest < Minitest::Test
   def test_identifier
     assert_equal t(:IDENT, "foo"), ::KDL::Tokenizer.new("foo").next_token
     assert_equal t(:IDENT, "foo-bar123"), ::KDL::Tokenizer.new("foo-bar123").next_token
+    assert_equal t(:IDENT, "-"), ::KDL::Tokenizer.new("-").next_token
+    assert_equal t(:IDENT, "--"), ::KDL::Tokenizer.new("--").next_token
   end
 
   def test_string
