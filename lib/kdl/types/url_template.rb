@@ -1,3 +1,5 @@
+require 'uri'
+
 module KDL
   module Types
     class URLTemplate < Value
