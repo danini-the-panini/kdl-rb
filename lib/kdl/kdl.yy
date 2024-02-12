@@ -1,7 +1,6 @@
 class KDL::Parser
   options no_result_var
-  token IDENT
-        STRING RAWSTRING
+  token IDENT STRING RAWSTRING
         INTEGER FLOAT TRUE FALSE NULL
         WS NEWLINE
         LBRACE RBRACE
@@ -49,7 +48,8 @@ nodes           : none                      { [] }
   value : untyped_value
         | type untyped_value { val[1].as_type(val[0], @type_parsers.fetch(val[0], nil)) }
 
-  untyped_value : STRING     { KDL::Value::String.new(val[0].value) }
+  untyped_value : IDENT      { KDL::Value::String.new(val[0].value) }
+                | STRING     { KDL::Value::String.new(val[0].value) }
                 | RAWSTRING  { KDL::Value::String.new(val[0].value) }
                 | INTEGER    { KDL::Value::Int.new(val[0].value) }
                 | FLOAT      { KDL::Value::Float.new(val[0].value, format: val[0].meta[:format]) }
