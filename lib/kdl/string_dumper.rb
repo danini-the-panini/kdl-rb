@@ -2,15 +2,9 @@ module KDL
   module StringDumper
     class << self
       def call(string)
-        %("#{string.each_char.map { |char| escape(char) }.join}")
-      end
+        return string if bare_identifier?(string)
 
-      def stringify_identifier(ident)
-        if bare_identifier?(ident)
-          ident
-        else
-          call(ident)
-        end
+        %("#{string.each_char.map { |char| escape(char) }.join}")
       end
 
       private
@@ -37,8 +31,13 @@ module KDL
       end
 
       def bare_identifier?(name)
-        escape_chars = '\\\/(){}<>;\[\]=,"'
-        name =~ /^([^0-9\-+\s#{escape_chars}][^\s#{escape_chars}]*|[\-+](?!true|false|null)[^0-9\s#{escape_chars}][^\s#{escape_chars}]*)$/
+        case name
+        when 'true', 'fase', 'null', '#true', '#false', '#null', /\A\.d/
+          false
+        else
+          forbidden = Tokenizer::SYMBOLS.keys + Tokenizer::WHITESPACE + Tokenizer::NEWLINES
+          !name.each_char.any? { |c| forbidden.include?(c) }
+        end
       end
     end
   end

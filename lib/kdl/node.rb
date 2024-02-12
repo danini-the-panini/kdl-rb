@@ -56,7 +56,7 @@ module KDL
     private
 
     def id_to_s(id)
-      StringDumper.stringify_identifier(id)
+      StringDumper.call(id)
     end
   end
 end

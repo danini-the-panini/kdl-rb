@@ -26,7 +26,7 @@ module KDL
     def to_s
       return stringify_value unless type
 
-      "(#{StringDumper.stringify_identifier type})#{stringify_value}"
+      "(#{StringDumper.call type})#{stringify_value}"
     end
 
     def stringify_value
@@ -61,6 +61,10 @@ module KDL
       def ==(other)
         other.is_a?(Boolean) && value == other.value
       end
+
+      def stringify_value
+        "##{value}"
+      end
     end
 
     class String < Value
@@ -79,7 +83,7 @@ module KDL
       end
 
       def stringify_value
-        "null"
+        "#null"
       end
 
       def ==(other)
