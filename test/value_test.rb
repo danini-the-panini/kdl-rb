@@ -7,7 +7,7 @@ class ValueTest < Minitest::Test
     assert_equal "#true", ::KDL::Value::Boolean.new(true).to_s
     assert_equal "#false", ::KDL::Value::Boolean.new(false).to_s
     assert_equal "#null", ::KDL::Value::Null.to_s
-    assert_equal '"foo"', ::KDL::Value::String.new("foo").to_s
+    assert_equal 'foo', ::KDL::Value::String.new("foo").to_s
     assert_equal '"foo \"bar\" baz"', ::KDL::Value::String.new('foo "bar" baz').to_s
   end
 

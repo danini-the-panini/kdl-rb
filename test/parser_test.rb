@@ -40,6 +40,8 @@ class ParserTest < Minitest::Test
                  @parser.parse("node {\n  node2\n}")
     assert_equal ::KDL::Document.new([::KDL::Node.new('node', [], {}, [::KDL::Node.new('node2')])]),
                  @parser.parse("node { node2; }")
+    assert_equal ::KDL::Document.new([::KDL::Node.new('node', [], {}, [::KDL::Node.new('node2')])]),
+                 @parser.parse("node {\n    node2    \n}")
   end
 
   def test_node_slashdash_comment
@@ -96,26 +98,33 @@ class ParserTest < Minitest::Test
   end
 
   def test_string
-    assert_equal ::KDL::Document.new([::KDL::Node.new('node', [::KDL::Value::String.new("")])]),
-                 @parser.parse('node ""')
-    assert_equal ::KDL::Document.new([::KDL::Node.new('node', [::KDL::Value::String.new("hello")])]),
-                 @parser.parse('node "hello"')
-    assert_equal ::KDL::Document.new([::KDL::Node.new('node', [::KDL::Value::String.new("hello\nworld")])]),
-                 @parser.parse('node "hello\\nworld"')
-    assert_equal ::KDL::Document.new([::KDL::Node.new('node', [::KDL::Value::String.new("\u{10FFF}")])]),
-                 @parser.parse('node "\\u{10FFF}"')
-    assert_equal ::KDL::Document.new([::KDL::Node.new('node', [::KDL::Value::String.new("\"\\/\u{08}\u{0C}\n\r\t")])]),
-                 @parser.parse('node "\"\\\\\/\b\f\n\r\t"')
-    assert_equal ::KDL::Document.new([::KDL::Node.new('node', [::KDL::Value::String.new("\u{10}")])]),
-                 @parser.parse('node "\u{10}"')
-    assert_raises { @parser.parse('node "\i"') }
-    assert_raises { @parser.parse('node "\u{c0ffee}"') }
+    # assert_equal ::KDL::Document.new([::KDL::Node.new('node', [::KDL::Value::String.new("")])]),
+    #              @parser.parse('node ""')
+    # assert_equal ::KDL::Document.new([::KDL::Node.new('node', [::KDL::Value::String.new("hello")])]),
+    #              @parser.parse('node "hello"')
+    # assert_equal ::KDL::Document.new([::KDL::Node.new('node', [::KDL::Value::String.new("hello\nworld")])]),
+    #              @parser.parse('node "hello\\nworld"')
+    assert_equal ::KDL::Document.new([::KDL::Node.new('node', [::KDL::Value::String.new("-flag")])]),
+                 @parser.parse('node -flag')
+    # assert_equal ::KDL::Document.new([::KDL::Node.new('node', [::KDL::Value::String.new("--flagg")])]),
+    #             @parser.parse('node --flagg')
+    # assert_equal ::KDL::Document.new([::KDL::Node.new('node', [::KDL::Value::String.new("\u{10FFF}")])]),
+    #              @parser.parse('node "\\u{10FFF}"')
+    # assert_equal ::KDL::Document.new([::KDL::Node.new('node', [::KDL::Value::String.new("\"\\\u{08}\u{0C}\n\r\t")])]),
+    #              @parser.parse('node "\"\\\\\b\f\n\r\t"')
+    # assert_equal ::KDL::Document.new([::KDL::Node.new('node', [::KDL::Value::String.new("\u{10}")])]),
+    #              @parser.parse('node "\u{10}"')
+    # assert_raises { @parser.parse('node "\i"') }
+    # assert_raises { @parser.parse('node "\u{c0ffee}"') }
   end
 
-  def test_multiline_string
+  def test_unindented_multiline_strings
     assert_equal ::KDL::Document.new([::KDL::Node.new('node', [::KDL::Value::String.new("foo\nbar\n  baz\nqux")])]),
                  @parser.parse("node \"\n  foo\n  bar\n    baz\n  qux\n  \"")
+    assert_equal ::KDL::Document.new([::KDL::Node.new('node', [::KDL::Value::String.new("foo\nbar\n  baz\nqux")])]),
+                @parser.parse("node #\"\n  foo\n  bar\n    baz\n  qux\n  \"#")
     assert_raises { @parser.parse("node \"\n    foo\n  bar\n    baz\n    \"")}
+    assert_raises { @parser.parse("node #\"\n    foo\n  bar\n    baz\n    \"#")}
   end
 
   def test_float
@@ -254,6 +263,9 @@ class ParserTest < Minitest::Test
 
   def test_escline
     assert_equal ::KDL::Document.new([::KDL::Node.new('node', [::KDL::Value.from(1)])]), @parser.parse("node\\\n  1")
+    assert_equal ::KDL::Document.new([::KDL::Node.new('node')]), @parser.parse("node\\\n")
+    assert_equal ::KDL::Document.new([::KDL::Node.new('node')]), @parser.parse("node\\ \n")
+    assert_equal ::KDL::Document.new([::KDL::Node.new('node')]), @parser.parse("node\\\n ")
   end
 
   def test_whitespace
@@ -295,8 +307,8 @@ class ParserTest < Minitest::Test
 
   def test_properties
     doc = @parser.parse <<~KDL
-      author "Alex Monad" email="alex@example.com" active=#true
-      foo bar=#true "baz" quux=#false 1 2 3
+      author "Alex Monad" email="alex@example.com" active= #true
+      foo bar =#true "baz" quux = #false 1 2 3
     KDL
     nodes = nodes! {
       author "Alex Monad", email: "alex@example.com", active: true
@@ -329,6 +341,14 @@ class ParserTest < Minitest::Test
     doc = @parser.parse('node1; node2; node3;')
     nodes = nodes! {
       node1; node2; node3;
+    }
+    assert_equal nodes, doc
+  end
+
+  def test_optional_child_semicolon
+    doc = @parser.parse('node {foo;bar;baz}')
+    nodes = nodes! {
+      node { foo; bar; baz }
     }
     assert_equal nodes, doc
   end

@@ -56,7 +56,14 @@ class TokenizerTest < Minitest::Test
   def test_symbols
     assert_equal t(:LBRACE, '{'), ::KDL::Tokenizer.new("{").next_token
     assert_equal t(:RBRACE, '}'), ::KDL::Tokenizer.new("}").next_token
+  end
+
+  def test_equals
     assert_equal t(:EQUALS, '='), ::KDL::Tokenizer.new("=").next_token
+    assert_equal t(:EQUALS, ' ='), ::KDL::Tokenizer.new(" =").next_token
+    assert_equal t(:EQUALS, '= '), ::KDL::Tokenizer.new("= ").next_token
+    assert_equal t(:EQUALS, ' = '), ::KDL::Tokenizer.new(" = ").next_token
+    assert_equal t(:EQUALS, ' ='), ::KDL::Tokenizer.new(" =foo").next_token
     assert_equal t(:EQUALS, "\uFE66"), ::KDL::Tokenizer.new("\uFE66").next_token
     assert_equal t(:EQUALS, "\uFF1D"), ::KDL::Tokenizer.new("\uFF1D").next_token
     assert_equal t(:EQUALS, "🟰"), ::KDL::Tokenizer.new("🟰").next_token
@@ -201,6 +208,13 @@ class TokenizerTest < Minitest::Test
     assert_equal t(:NEWLINE, "\n", 2, 15), tokenizer.next_token
     assert_equal t(:EOF, :EOF, 3, 1), tokenizer.next_token
     assert_equal eof(3, 1), tokenizer.next_token
+  end
+
+  def test_tokens
+    tokenizer = ::KDL::Tokenizer.new "node1 {\n  foo\n  bar\n}"
+
+    assert_equal %i[IDENT WS LBRACE NEWLINE WS IDENT NEWLINE WS IDENT NEWLINE RBRACE EOF],
+                 tokenizer.tokens.map(&:first)
   end
 
   private
