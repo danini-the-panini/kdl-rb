@@ -21,8 +21,26 @@ module KDL
       end
       unless children.empty?
         s += " {\n"
-        s += children.map { |c| "#{c.to_s(level + 1)}\n" }.join("\n")
-        s += "#{indent}}"
+        s += children.map { |c| "#{c.to_s(level + 1)}" }.join("\n")
+        s += "\n#{indent}}"
+      end
+      s
+    end
+
+    def inspect(level = 0)
+      indent = '    ' * level
+      s = "#{indent}#{type ? "(#{type.inspect})" : ''}#{name.inspect}["
+      unless arguments.empty?
+        s += "#{arguments.map(&:inspect).join(' ')}"
+      end
+      unless properties.empty?
+        s += " #{properties.map { |k, v| "#{k.inspect}=#{v.inspect}" }.join(' ')}"
+      end
+      s += "]"
+      unless children.empty?
+        s += " {\n"
+        s += children.map { |c| "#{c.inspect(level + 1)}" }.join("\n")
+        s += "\n#{indent}}"
       end
       s
     end
@@ -56,7 +74,7 @@ module KDL
     private
 
     def id_to_s(id)
-      StringDumper.call(id)
+      StringDumper.call(id.to_s)
     end
   end
 end

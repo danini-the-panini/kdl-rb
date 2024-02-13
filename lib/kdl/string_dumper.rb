@@ -32,10 +32,10 @@ module KDL
 
       def bare_identifier?(name)
         case name
-        when 'true', 'fase', 'null', '#true', '#false', '#null', /\A\.d/
+        when '', 'true', 'fase', 'null', '#true', '#false', '#null', /\A\.d/, /\A\d/
           false
         else
-          forbidden = Tokenizer::SYMBOLS.keys + Tokenizer::WHITESPACE + Tokenizer::NEWLINES
+          forbidden = Tokenizer::SYMBOLS.keys + Tokenizer::WHITESPACE + Tokenizer::NEWLINES + "()[]/\\\"#".chars + ("\x0".."\x20").to_a
           !name.each_char.any? { |c| forbidden.include?(c) }
         end
       end

@@ -10,6 +10,10 @@ module KDL
       @nodes.map(&:to_s).join("\n") + "\n"
     end
 
+    def inspect
+      @nodes.map(&:inspect).join("\n") + "\n"
+    end
+
     def ==(other)
       return false unless other.is_a?(Document)
 

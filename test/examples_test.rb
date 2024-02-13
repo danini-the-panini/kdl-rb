@@ -20,8 +20,8 @@ class ExamplesTest < Minitest::Test
               components "rustfmt"
               override true
             }
-            step "rustfmt", run: "cargo fmt --all -- --check"
-            step "docs", run: "cargo doc --no-deps"
+            step("rustfmt") { run "cargo", "fmt", "--all", "--", "--check" }
+            step("docs") { run "cargo", "doc", "--no-deps" }
           }
         }
         build_and_test("Build & Test") {
@@ -41,8 +41,9 @@ class ExamplesTest < Minitest::Test
               components "clippy"
               override true
             }
-            step "Clippy", run: "cargo clippy --all -- -D warnings"
-            step "Run tests", run: "cargo test --all --verbose"
+            step("Clippy") { run "cargo", "clippy", "--all", "--", "-D", "warnings" }
+            step("Run tests") { run "cargo", "test", "--all", "--verbose" }
+            step "Other Stuff", run: "  echo foo\n  echo bar\n    echo baz"
           }
         }
       }
@@ -56,7 +57,7 @@ class ExamplesTest < Minitest::Test
       package {
         name "kdl"
         version "0.0.0"
-        description "kat's document language"
+        description "The kdl document language"
         authors "Kat Marchán <kzm@zkat.tech>"
         _ "license-file", "LICENSE.md"
         edition "2018"

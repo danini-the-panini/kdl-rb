@@ -4,7 +4,7 @@ class NodeTest < Minitest::Test
   def test_to_s
     value = ::KDL::Node.new("foo", [v(1), v("two")], { "three" => v(3) })
 
-    assert_equal 'foo 1 "two" three=3', value.to_s
+    assert_equal 'foo 1 two three=3', value.to_s
   end
 
   def test_nested_to_s
@@ -19,15 +19,13 @@ class NodeTest < Minitest::Test
     ])
 
     assert_equal <<~KDL.strip, value.to_s
-      a1 "a" 1 a=1 {
-          b1 "b" (foo)1 {
-              c1 "c" 1
+      a1 a 1 a=1 {
+          b1 b (foo)1 {
+              c1 c 1
           }
-
-          b2 "b" c=(bar)2 {
-              c2 "c" 2
+          b2 b c=(bar)2 {
+              c2 c 2
           }
-
           (baz)b3
       }
     KDL

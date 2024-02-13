@@ -29,6 +29,13 @@ module KDL
       "(#{StringDumper.call type})#{stringify_value}"
     end
 
+    def inspect
+      return value.inspect unless type
+
+      "(#{type.inspect})#{value.inspect}"
+    end
+      
+
     def stringify_value
       return format % value if format
 
