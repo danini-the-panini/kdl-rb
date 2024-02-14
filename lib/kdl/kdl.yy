@@ -35,7 +35,7 @@ rule
   node_children : ws_star LBRACE nodes RBRACE                       { val[2] }
                 | ws_star LBRACE linespaces RBRACE                  { [] }
                 | ws_star LBRACE nodes unterm_node ws_star RBRACE   { [*val[2], val[3]] }
-                | ws_star LBRACE ws_star unterm_node ws_star RBRACE { [val[3]] }
+                | ws_star LBRACE linespaces unterm_node ws_star RBRACE   { [val[3]] }
   empty_children: SLASHDASH node_children
                 | ws_plus empty_children
   node_term: linespaces | semicolon_term
