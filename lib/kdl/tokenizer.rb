@@ -192,7 +192,9 @@ module KDL
             if la[0] == :NEWLINE || la[0] == :EOF || (la[0] == :WS && (lan = t.next_token[0]) == :NEWLINE || lan == :EOF)
               @index = t.index
               new_line
-              return token(:ESCLINE, "\\#{la[1].value}")
+              @buffer += "#{c}#{la[1].value}"
+              @buffer += "\n" if lan == :NEWLINE
+              self.context = :whitespace
             else
               raise_error "Unexpected '\\' (#{la[0]})"
             end
@@ -382,16 +384,28 @@ module KDL
             self.context = :multi_line_comment
             @comment_nesting = 1
             traverse(2)
+          elsif c == "\\"
+            t = Tokenizer.new(@str, @index + 1)
+            la = t.next_token
+            if la[0] == :NEWLINE || la[0] == :EOF || (la[0] == :WS && (lan = t.next_token[0]) == :NEWLINE || lan == :EOF)
+              @index = t.index
+              new_line
+              @buffer += "#{c}#{la[1].value}"
+              @buffer += "\n" if lan == :NEWLINE
+            else
+              raise_error "Unexpected '\\' (#{la[0]})"
+            end
           else
             return token(:WS, @buffer)
           end
         when :equals
-          if WHITESPACE.include?(c)
-            @buffer += c
-            traverse(1)
-          else
-            return token(:EQUALS, @buffer)
+          t = Tokenizer.new(@str, @index)
+          la = t.next_token
+          if la[0] == :WS
+            @buffer += la[1].value
+            @index = t.index
           end
+          return token(:EQUALS, @buffer)
         end
       end
     end

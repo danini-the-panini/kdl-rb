@@ -312,7 +312,8 @@ class ParserTest < Minitest::Test
   def test_properties
     doc = @parser.parse <<~KDL
       author "Alex Monad" email="alex@example.com" active= #true
-      foo bar =#true "baz" quux = #false 1 2 3
+      foo bar =#true "baz" quux =\\
+        #false 1 2 3
     KDL
     nodes = nodes! {
       author "Alex Monad", email: "alex@example.com", active: true
