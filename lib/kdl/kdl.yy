@@ -9,7 +9,6 @@ class KDL::Parser
         SEMICOLON
         EOF
         SLASHDASH
-        ESCLINE
 rule
   document  : nodes { KDL::Document.new(val[0]) }
             | linespaces { KDL::Document.new([]) }
@@ -63,8 +62,7 @@ rule
   boolean : TRUE  { true }
           | FALSE { false }
 
-  ws: WS | ESCLINE
-  ws_plus: ws | ws ws_plus
+  ws_plus: WS | WS ws_plus
   ws_star: none | ws_plus
   linespace: WS | NEWLINE | EOF
   linespaces: linespace | linespaces linespace
