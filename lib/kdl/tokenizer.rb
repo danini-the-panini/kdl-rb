@@ -192,7 +192,7 @@ module KDL
             if la[0] == :NEWLINE || la[0] == :EOF || (la[0] == :WS && (lan = t.next_token[0]) == :NEWLINE || lan == :EOF)
               @index = t.index
               new_line
-              @buffer += "#{c}#{la[1].value}"
+              @buffer = "#{c}#{la[1].value}"
               @buffer += "\n" if lan == :NEWLINE
               self.context = :whitespace
             else

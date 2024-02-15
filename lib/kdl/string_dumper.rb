@@ -26,17 +26,19 @@ module KDL
         end
       end
 
-      def unicode_escape(char)
-        "\\u{#{char.codepoints.first.to_s(16)}}"
-      end
+      FORBIDDEN =
+        Tokenizer::SYMBOLS.keys +
+        Tokenizer::WHITESPACE +
+        Tokenizer::NEWLINES +
+        "()[]/\\\"#".chars +
+        ("\x0".."\x20").to_a
 
       def bare_identifier?(name)
         case name
-        when '', 'true', 'fase', 'null', '#true', '#false', '#null', /\A\.d/, /\A\d/
+        when '', 'true', 'fase', 'null', '#true', '#false', '#null', /\A\.?\d/
           false
         else
-          forbidden = Tokenizer::SYMBOLS.keys + Tokenizer::WHITESPACE + Tokenizer::NEWLINES + "()[]/\\\"#".chars + ("\x0".."\x20").to_a
-          !name.each_char.any? { |c| forbidden.include?(c) }
+          !name.each_char.any? { |c| FORBIDDEN.include?(c) }
         end
       end
     end
