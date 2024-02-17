@@ -266,14 +266,17 @@ module KDL
             @buffer += c
           else
             case @buffer
-            when 'true', 'false', 'null' then raise_error "Identifier cannot be a literal"
-            when /\A\.\d/ then raise_error "Identifier cannot look like an illegal float"
-            else return token(:IDENT, @buffer)
+            when 'true', 'false', 'null', 'inf', '-inf', 'nan'
+              raise_error "Identifier cannot be a literal"
+            when /\A\.\d/
+              raise_error "Identifier cannot look like an illegal float"
+            else
+              return token(:IDENT, @buffer)
             end
           end
         when :keyword
           case c
-          when /[a-z]/
+          when /[a-z\-]/
             traverse(1)
             @buffer += c
           else
@@ -281,6 +284,9 @@ module KDL
             when '#true'  then return token(:TRUE, true)
             when '#false' then return token(:FALSE, false)
             when '#null'  then return token(:NULL, nil)
+            when '#inf'   then return token(:FLOAT, Float::INFINITY)
+            when '#-inf'  then return token(:FLOAT, -Float::INFINITY)
+            when '#nan'   then return token(:FLOAT, Float::NAN)
             else raise_error "Unknown keyword"
             end
           end

@@ -42,6 +42,11 @@ class TokenizerTest < Minitest::Test
 
   def test_float
     assert_equal t(:FLOAT, 1.23), ::KDL::Tokenizer.new("1.23").next_token
+    assert_equal t(:FLOAT, Float::INFINITY), ::KDL::Tokenizer.new("#inf").next_token
+    assert_equal t(:FLOAT, -Float::INFINITY), ::KDL::Tokenizer.new("#-inf").next_token
+    nan = ::KDL::Tokenizer.new("#nan").next_token
+    assert_equal :FLOAT, nan[0]
+    assert_predicate nan[1].value, :nan?
   end
 
   def test_boolean

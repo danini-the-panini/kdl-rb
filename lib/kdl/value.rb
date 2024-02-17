@@ -50,10 +50,16 @@ module KDL
 
     class Float < Value
       def ==(other)
-        other.is_a?(Float) && value == other.value
+        return false unless other.is_a?(Float)
+        return other.value.nan? if value.nan?
+
+        value == other.value
       end
 
       def stringify_value
+        return '#nan'  if value.nan?
+        return '#inf'  if value == ::Float::INFINITY
+        return '#-inf' if value == -::Float::INFINITY
         return super.upcase unless value.is_a?(BigDecimal)
 
         sign, digits, _, exponent = value.split
