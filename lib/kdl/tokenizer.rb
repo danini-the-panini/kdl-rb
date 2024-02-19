@@ -33,33 +33,44 @@ module KDL
 
     attr_reader :index
 
+    EQUALS = ['=', "﹦", "＝", "🟰"]
+
     SYMBOLS = {
       '{' => :LBRACE,
       '}' => :RBRACE,
-      '=' => :EQUALS,
-      '＝' => :EQUALS,
       ';' => :SEMICOLON
-    }
+    }.merge(EQUALS.map { |x| [x, :EQUALS] }.to_h)
 
-    WHITEPACE = ["\u0009", "\u0020", "\u00A0", "\u1680",
-                 "\u2000", "\u2001", "\u2002", "\u2003",
-                 "\u2004", "\u2005", "\u2006", "\u2007",
-                 "\u2008", "\u2009", "\u200A", "\u202F",
-                 "\u205F", "\u3000" ]
+    WHITESPACE = ["\u0009", "\u000B", "\u0020", "\u00A0",
+                  "\u1680", "\u2000", "\u2001", "\u2002",
+                  "\u2003", "\u2004", "\u2005", "\u2006",
+                  "\u2007", "\u2008", "\u2009", "\u200A",
+                  "\u202F", "\u205F", "\u3000" ]
 
     NEWLINES = ["\u000A", "\u0085", "\u000C", "\u2028", "\u2029"]
 
-    NON_IDENTIFIER_CHARS = Regexp.escape "#{SYMBOLS.keys.join('')}()/\\<>[]\","
+    NON_IDENTIFIER_CHARS = Regexp.escape "#{SYMBOLS.keys.join('')}()[]/\\\"#\s"
     IDENTIFIER_CHARS = /[^#{NON_IDENTIFIER_CHARS}\x0-\x20]/
     INITIAL_IDENTIFIER_CHARS = /[^#{NON_IDENTIFIER_CHARS}0-9\x0-\x20]/
 
-    ALLOWED_IN_TYPE = [:ident, :string, :rawstring]
-    NOT_ALLOWED_AFTER_TYPE = [:single_line_comment, :multi_line_comment]
+    FORBIDDEN = [
+      *"\u0000".."\u0008",
+      *"\u000E".."\u001F",
+      "\u007F",
+      *"\u200E".."\u200F",
+      *"\u202A".."\u202E",
+      *"\u2066".."\u2069",
+      "\uFEFF"
+    ]
+
+    ALLOWED_IN_TYPE = [:ident, :string, :rawstring, :multi_line_comment, :whitespace]
+    NOT_ALLOWED_AFTER_TYPE = [:single_line_comment]
 
     def initialize(str, start = 0)
-      @str = str
+      @str = debom(str)
       @context = nil
       @rawstring_hashes = nil
+      @start = start
       @index = start
       @buffer = ""
       @done = false
@@ -70,46 +81,98 @@ module KDL
       @last_token = nil
     end
 
+    def done?
+      @done
+    end
+
+    def [](i)
+      @str[i].tap do |c|
+        raise_error "Forbidden character: #{c.inspect}" if FORBIDDEN.include?(c)
+      end
+    end
+
+    def tokens
+      a = []
+      while !done?
+        a << next_token
+      end
+      a
+    end
+
+    def reset
+      @index = @start
+    end
+
     def next_token
       @context = nil
       @previous_context = nil
       @line_at_start = @line
       @column_at_start = @column
       loop do
-        c = @str[@index]
+        c = self[@index]
         case @context
         when nil
           case c
           when '"'
-            self.context = :string
-            @buffer = ''
-            traverse(1)
-          when 'r'
-            if @str[@index + 1] == '"'
-              self.context = :rawstring
-              traverse(2)
-              @rawstring_hashes = 0
+            if self[@index + 1] == "\n"
+              self.context = :multiline_string
               @buffer = ''
-              next
-            elsif @str[@index + 1] == '#'
-              i = @index + 1
-              @rawstring_hashes = 0
-              while @str[i] == '#'
-                @rawstring_hashes += 1
-                i += 1
-              end
-              if @str[i] == '"'
+              traverse(2)
+            else
+              self.context = :string
+              @buffer = ''
+              traverse(1)
+            end
+          when '#'
+            if self[@index + 1] == '"'
+              if self[@index + 2] == "\n"
+                self.context = :multiline_rawstring
+                @rawstring_hashes = 1
+                @buffer = ''
+                traverse(3)
+                next
+              else
                 self.context = :rawstring
-                @index = i + 1
+                traverse(2)
+                @rawstring_hashes = 1
                 @buffer = ''
                 next
               end
+            elsif self[@index + 1] == '#'
+              i = @index + 1
+              @rawstring_hashes = 1
+              while self[i] == '#'
+                @rawstring_hashes += 1
+                i += 1
+              end
+              if self[i] == '"'
+                if self[i + 1] == "\n"
+                  self.context = :multiline_rawstring
+                  @index = i + 2
+                  @buffer = ''
+                  next
+                else
+                  self.context = :rawstring
+                  @index = i + 1
+                  @buffer = ''
+                  next
+                end
+              end
             end
-            self.context = :ident
+            self.context = :keyword
             @buffer = c
             traverse(1)
-          when /[0-9\-+]/
-            n = @str[@index + 1]
+          when '-'
+            n = self[@index + 1]
+            if n =~ /[0-9]/
+              self.context = :decimal
+            else
+              self.context = :ident
+            end
+            @buffer = c
+            traverse(1)
+          when /[0-9+]/
+            n = self[@index + 1]
             if c == '0' && n =~ /[box]/
               traverse(2)
               @buffer = ''
@@ -129,14 +192,20 @@ module KDL
             if la[0] == :NEWLINE || la[0] == :EOF || (la[0] == :WS && (lan = t.next_token[0]) == :NEWLINE || lan == :EOF)
               @index = t.index
               new_line
-              return token(:ESCLINE, "\\#{la[1].value}")
+              @buffer = "#{c}#{la[1].value}"
+              @buffer += "\n" if lan == :NEWLINE
+              self.context = :whitespace
             else
               raise_error "Unexpected '\\' (#{la[0]})"
             end
+          when *EQUALS
+            self.context = :equals
+            @buffer = c
+            traverse(1)
           when *SYMBOLS.keys
             return token(SYMBOLS[c], c).tap { traverse(1) }
           when "\r"
-            n = @str[@index + 1]
+            n = self[@index + 1]
             if n == "\n"
               return token(:NEWLINE, "#{c}#{n}").tap do
                 traverse(2)
@@ -154,26 +223,27 @@ module KDL
               new_line
             end
           when "/"
-            if @str[@index + 1] == '/'
+            if self[@index + 1] == '/'
               self.context = :single_line_comment
               traverse(2)
-            elsif @str[@index + 1] == '*'
+            elsif self[@index + 1] == '*'
               self.context = :multi_line_comment
               @comment_nesting = 1
               traverse(2)
-            elsif @str[@index + 1] == '-'
+            elsif self[@index + 1] == '-'
               return token(:SLASHDASH, '/-').tap { traverse(2) }
             else
               self.context = :ident
               @buffer = c
               traverse(1)
             end
-          when *WHITEPACE
+          when *WHITESPACE
             self.context = :whitespace
             @buffer = c
             traverse(1)
           when nil
             return [false, token(:EOF, :EOF)[1]] if @done
+
             @done = true
             return token(:EOF, :EOF)
           when INITIAL_IDENTIFIER_CHARS
@@ -196,36 +266,57 @@ module KDL
             @buffer += c
           else
             case @buffer
-            when 'true'  then return token(:TRUE, true)
-            when 'false' then return token(:FALSE, false)
-            when 'null'  then return token(:NULL, nil)
-            else return token(:IDENT, @buffer)
+            when 'true', 'false', 'null', 'inf', '-inf', 'nan'
+              raise_error "Identifier cannot be a literal"
+            when /\A\.\d/
+              raise_error "Identifier cannot look like an illegal float"
+            else
+              return token(:IDENT, @buffer)
             end
           end
-        when :string
+        when :keyword
+          case c
+          when /[a-z\-]/
+            traverse(1)
+            @buffer += c
+          else
+            case @buffer
+            when '#true'  then return token(:TRUE, true)
+            when '#false' then return token(:FALSE, false)
+            when '#null'  then return token(:NULL, nil)
+            when '#inf'   then return token(:FLOAT, Float::INFINITY)
+            when '#-inf'  then return token(:FLOAT, -Float::INFINITY)
+            when '#nan'   then return token(:FLOAT, Float::NAN)
+            else raise_error "Unknown keyword"
+            end
+          end
+        when :string, :multiline_string
           case c
           when '\\'
             @buffer += c
-            @buffer += @str[@index + 1]
+            @buffer += self[@index + 1]
             traverse(2)
           when '"'
-            return token(:STRING, convert_escapes(@buffer)).tap { traverse(1) }
+            string = convert_escapes(@buffer)
+            string = @context == :multiline_string ? unindent(string) : string
+            return token(:STRING, string).tap { traverse(1) }
           when nil
             raise_error "Unterminated string literal"
           else
             @buffer += c
             traverse(1)
           end
-        when :rawstring
+        when :rawstring, :multiline_rawstring
           raise_error "Unterminated rawstring literal" if c.nil?
 
           if c == '"'
             h = 0
-            while @str[@index + 1 + h] == '#' && h < @rawstring_hashes
+            while self[@index + 1 + h] == '#' && h < @rawstring_hashes
               h += 1
             end
             if h == @rawstring_hashes
-              return token(:RAWSTRING, @buffer).tap { traverse(1 + h) }
+              string = @context == :multiline_rawstring ? unindent(@buffer) : @buffer
+              return token(:RAWSTRING, string).tap { traverse(1 + h) }
             end
           end
 
@@ -275,10 +366,10 @@ module KDL
             traverse(1)
           end
         when :multi_line_comment
-          if c == '/' && @str[@index + 1] == '*'
+          if c == '/' && self[@index + 1] == '*'
             @comment_nesting += 1
             traverse(2)
-          elsif c == '*' && @str[@index + 1] == '/'
+          elsif c == '*' && self[@index + 1] == '/'
             @comment_nesting -= 1
             traverse(2)
             if @comment_nesting == 0
@@ -288,16 +379,39 @@ module KDL
             traverse(1)
           end
         when :whitespace
-          if WHITEPACE.include?(c)
+          if WHITESPACE.include?(c)
             traverse(1)
             @buffer += c
-          elsif c == "/" && @str[@index + 1] == '*'
+          elsif EQUALS.include?(c)
+            self.context = :equals
+            @buffer += c
+            traverse(1)
+          elsif c == "/" && self[@index + 1] == '*'
             self.context = :multi_line_comment
             @comment_nesting = 1
             traverse(2)
+          elsif c == "\\"
+            t = Tokenizer.new(@str, @index + 1)
+            la = t.next_token
+            if la[0] == :NEWLINE || la[0] == :EOF || (la[0] == :WS && (lan = t.next_token[0]) == :NEWLINE || lan == :EOF)
+              @index = t.index
+              new_line
+              @buffer += "#{c}#{la[1].value}"
+              @buffer += "\n" if lan == :NEWLINE
+            else
+              raise_error "Unexpected '\\' (#{la[0]})"
+            end
           else
             return token(:WS, @buffer)
           end
+        when :equals
+          t = Tokenizer.new(@str, @index)
+          la = t.next_token
+          if la[0] == :WS
+            @buffer += la[1].value
+            @index = t.index
+          end
+          return token(:EQUALS, @buffer)
         end
       end
     end
@@ -382,7 +496,7 @@ module KDL
     end
 
     def convert_escapes(string)
-      string.gsub(/\\[^u]/) do |m|
+      string.gsub(/\\(\s+|[^u])/) do |m|
         case m
         when '\n' then "\n"
         when '\r' then "\r"
@@ -391,7 +505,8 @@ module KDL
         when '\"' then "\""
         when '\b' then "\b"
         when '\f' then "\f"
-        when '\/' then "/"
+        when '\s' then ' '
+        when /\\\s+/ then ''
         else raise_error "Unexpected escape #{m.inspect}"
         end
       end.gsub(/\\u\{[0-9a-fA-F]{0,6}\}/) do |m|
@@ -401,6 +516,31 @@ module KDL
         end
         i.chr(Encoding::UTF_8)
       end
+    end
+
+    def unindent(string)
+      lines = string.lines
+      if lines.last.end_with?("\n")
+        indent = ""
+      else
+        *lines, indent = lines
+      end
+
+      if !indent.empty? && indent.each_char.any? { |c| !WHITESPACE.include?(c) }
+        raise_error "Invalid multiline string final line"
+      end
+      if lines.any? { |line| !line.start_with?(indent) }
+        raise_error "Invalid multiline string indentation"
+      end
+
+      lines.last.chomp!
+      lines.map { |line| line.gsub(/\A#{indent}/, '') }.join
+    end
+
+    def debom(str)
+      return str unless str.start_with?("\uFEFF")
+
+      str[1..]
     end
   end
 end
