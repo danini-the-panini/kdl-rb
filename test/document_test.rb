@@ -62,6 +62,8 @@ class DocumentTest < Minitest::Test
     assert_equal ["foo", "bar", "baz"], doc.dash_vals(0)
     assert_equal ["foo", "bar", "baz"], doc.dash_vals("node")
     assert_equal ["foo", "bar", "baz"], doc.dash_vals(:node)
+
+    assert_raises { doc.dash_vals(nil) }
   end
 
 end

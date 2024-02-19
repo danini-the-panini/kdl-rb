@@ -27,6 +27,7 @@ class ValueTest < Minitest::Test
   def test_equal
     assert_equal ::KDL::Value::Int.new(42), ::KDL::Value::Int.new(42)
     assert_equal ::KDL::Value::Float.new(3.14), ::KDL::Value::Float.new(3.14)
+    assert_equal ::KDL::Value::Float.new(::Float::NAN), ::KDL::Value::Float.new(::Float::NAN)
     assert_equal ::KDL::Value::Boolean.new(true), ::KDL::Value::Boolean.new(true)
     assert_equal ::KDL::Value::NullImpl.new, ::KDL::Value::NullImpl.new
     assert_equal ::KDL::Value::String.new("lorem"), ::KDL::Value::String.new("lorem")

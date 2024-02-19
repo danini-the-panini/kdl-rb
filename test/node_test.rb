@@ -75,6 +75,8 @@ class NodeTest < Minitest::Test
     assert_equal ["foo", "bar", "baz"], node.dash_vals(0)
     assert_equal ["foo", "bar", "baz"], node.dash_vals("node")
     assert_equal ["foo", "bar", "baz"], node.dash_vals(:node)
+
+    assert_raises { node.dash_vals(nil) }
   end
 
   def test_to_s
