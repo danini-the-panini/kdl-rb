@@ -23,6 +23,12 @@ module KDL
       end
     end
 
+    def ==(other)
+      return self == other.value if other.is_a?(self.class)
+
+      value == other
+    end
+
     def to_s
       return stringify_value unless type
 
@@ -34,7 +40,6 @@ module KDL
 
       "(#{type.inspect})#{value.inspect}"
     end
-      
 
     def stringify_value
       return format % value if format
@@ -42,18 +47,23 @@ module KDL
       value.to_s
     end
 
+    def method_missing(name, *args, **kwargs, &block)
+      value.public_send(name, *args, **kwargs, &block)
+    end
+
+    def repond_to_missing?(name)
+      value.respond_to?(name)
+    end
+
     class Int < Value
-      def ==(other)
-        other.is_a?(Int) && value == other.value
-      end
     end
 
     class Float < Value
       def ==(other)
-        return false unless other.is_a?(Float)
-        return other.value.nan? if value.nan?
+        return self == other.value if other.is_a?(Float)
+        return other.nan? if value.nan?
 
-        value == other.value
+        value == other
       end
 
       def stringify_value
@@ -71,10 +81,6 @@ module KDL
     end
 
     class Boolean < Value
-      def ==(other)
-        other.is_a?(Boolean) && value == other.value
-      end
-
       def stringify_value
         "##{value}"
       end
@@ -83,10 +89,6 @@ module KDL
     class String < Value
       def stringify_value
         StringDumper.call(value)
-      end
-
-      def ==(other)
-        other.is_a?(String) && value == other.value
       end
     end
 
@@ -100,7 +102,7 @@ module KDL
       end
 
       def ==(other)
-        other.is_a?(NullImpl)
+        other.is_a?(NullImpl) || other.nil?
       end
     end
     Null = NullImpl.new

@@ -1,48 +1,89 @@
 module KDL
   class Node
+    include Enumerable
+
     attr_accessor :name, :arguments, :properties, :children, :type
 
     def initialize(name, arguments = [], properties = {}, children = [], type: nil)
       @name = name
       @arguments = arguments
-      @properties = properties
+      @properties = properties.transform_keys(&:to_s)
       @children = children
       @type = type
     end
 
-    def to_s(level = 0)
+    def [](key)
+      case key
+      when Integer
+        arguments[key]&.value
+      when String, Symbol
+        properties[key.to_s]&.value
+      else
+        raise ArgumentError, "node can only be indexed by Integer/String"
+      end
+    end
+
+    def child(key)
+      case key
+      when Integer
+        children[key]
+      when String, Symbol
+        children.find { _1.name == key.to_s }
+      else
+        raise ArgumentError, "node can only be indexed by Integer/String"
+      end
+    end
+
+    def arg(key)
+      child(key)&.arguments&.first&.value
+    end
+
+    def args(key)
+      child(key)&.arguments&.map(&:value)
+    end
+
+    def each_arg(key, &block)
+      args(key)&.each(&block)
+    end
+
+    def dash_vals(key)
+      child(key)
+        &.children
+        &.select { _1.name == "-" }
+        &.map { _1.arguments.first&.value }
+    end
+
+    def each_dash_val(key, &block)
+      dash_vals(key).each(&:block)
+    end
+
+    def each(&block)
+      children.each(&block)
+    end
+
+    def <=>(other)
+      name <=> other.name
+    end
+
+    def to_s(level = 0, m = :to_s)
       indent = '    ' * level
-      s = "#{indent}#{type ? "(#{id_to_s type})" : ''}#{id_to_s name}"
+      s = "#{indent}#{type ? "(#{id_to_s type, m })" : ''}#{id_to_s name, m}"
       unless arguments.empty?
-        s += " #{arguments.map(&:to_s).join(' ')}"
+        s += " #{arguments.map(&m).join(' ')}"
       end
       unless properties.empty?
-        s += " #{properties.map { |k, v| "#{id_to_s k}=#{v}" }.join(' ')}"
+        s += " #{properties.map { |k, v| "#{id_to_s k, m}=#{v.public_send(m)}" }.join(' ')}"
       end
       unless children.empty?
         s += " {\n"
-        s += children.map { |c| "#{c.to_s(level + 1)}" }.join("\n")
+        s += children.map { |c| "#{c.public_send(m, level + 1)}" }.join("\n")
         s += "\n#{indent}}"
       end
       s
     end
 
     def inspect(level = 0)
-      indent = '    ' * level
-      s = "#{indent}#{type ? "(#{type.inspect})" : ''}#{name.inspect}["
-      unless arguments.empty?
-        s += "#{arguments.map(&:inspect).join(' ')}"
-      end
-      unless properties.empty?
-        s += " #{properties.map { |k, v| "#{k.inspect}=#{v.inspect}" }.join(' ')}"
-      end
-      s += "]"
-      unless children.empty?
-        s += " {\n"
-        s += children.map { |c| "#{c.inspect(level + 1)}" }.join("\n")
-        s += "\n#{indent}}"
-      end
-      s
+      to_s(level, :inspect)
     end
 
     def ==(other)
@@ -73,7 +114,9 @@ module KDL
 
     private
 
-    def id_to_s(id)
+    def id_to_s(id, m = :to_s)
+      return id.public_send(m) unless m == :to_s
+
       StringDumper.call(id.to_s)
     end
   end

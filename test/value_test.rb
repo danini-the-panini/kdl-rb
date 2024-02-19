@@ -23,4 +23,29 @@ class ValueTest < Minitest::Test
 
     assert_equal(KDL::Value::Null, KDL::Value::from(nil))
   end
+
+  def test_equal
+    assert_equal ::KDL::Value::Int.new(42), ::KDL::Value::Int.new(42)
+    assert_equal ::KDL::Value::Float.new(3.14), ::KDL::Value::Float.new(3.14)
+    assert_equal ::KDL::Value::Boolean.new(true), ::KDL::Value::Boolean.new(true)
+    assert_equal ::KDL::Value::NullImpl.new, ::KDL::Value::NullImpl.new
+    assert_equal ::KDL::Value::String.new("lorem"), ::KDL::Value::String.new("lorem")
+
+    assert_equal ::KDL::Value::Int.new(42), 42
+    assert_equal ::KDL::Value::Float.new(3.14), 3.14
+    assert_equal ::KDL::Value::Boolean.new(true), true
+    assert_equal ::KDL::Value::NullImpl.new, nil
+    assert_equal ::KDL::Value::String.new("lorem"), "lorem"
+
+    refute_equal ::KDL::Value::Int.new(69), ::KDL::Value::Int.new(42)
+    refute_equal ::KDL::Value::Float.new(6.28), ::KDL::Value::Float.new(3.14)
+    refute_equal ::KDL::Value::Boolean.new(false), ::KDL::Value::Boolean.new(true)
+    refute_equal ::KDL::Value::String.new("ipsum"), ::KDL::Value::String.new("lorem")
+
+    refute_equal ::KDL::Value::Int.new(42), 69
+    refute_equal ::KDL::Value::Float.new(3.14), 6.28
+    refute_equal ::KDL::Value::Boolean.new(true), false
+    refute_equal ::KDL::Value::NullImpl.new, 7
+    refute_equal ::KDL::Value::String.new("lorem"), "ipsum"
+  end
 end
