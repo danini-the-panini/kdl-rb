@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
   spec.description   = %q{Ruby implementation of the KDL Document Language Spec}
   spec.homepage      = "https://kdl.dev"
   spec.license       = "MIT"
-  spec.required_ruby_version = Gem::Requirement.new(">= 2.4.0")
+  spec.required_ruby_version = Gem::Requirement.new(">= 2.5.0")
 
   spec.metadata["homepage_uri"] = spec.homepage
   spec.metadata["source_code_uri"] = "https://github.com/danini-the-panini/kdl-rb"
@@ -26,4 +26,6 @@ Gem::Specification.new do |spec|
 
   spec.add_development_dependency 'racc', '~> 1.5'
   spec.add_dependency 'simpleidn', '~> 0.2.1'
+  spec.add_dependency 'bigdecimal', '~> 3.1.6'
+  spec.add_dependency 'base64', '~> 0.2.0'
 end
