@@ -165,22 +165,25 @@ module KDL
           when '-'
             n = self[@index + 1]
             if n =~ /[0-9]/
-              self.context = :decimal
+              n2 = self[@index + 2]
+              if n == '0' && n2 =~ /[box]/
+                self.context = integer_context(n2)
+                traverse(3)
+              else
+                self.context = :decimal
+                traverse(1)
+              end
             else
               self.context = :ident
+              traverse(1)
             end
             @buffer = c
-            traverse(1)
           when /[0-9+]/
             n = self[@index + 1]
             if c == '0' && n =~ /[box]/
               traverse(2)
               @buffer = ''
               self.context = integer_context(n)
-            elsif c == '-' && n == '0' && (n2 = @str[@index + 2]) =~ /[box]/
-              traverse(3)
-              @buffer = '-'
-              self.context = integer_context(n2)
             else
               self.context = :decimal
               @buffer = c
@@ -449,6 +452,14 @@ module KDL
     def revert_context
       @context = @previous_context
       @previous_context = nil
+    end
+
+    def integer_context(n)
+      case n
+      when 'b' then :binary
+      when 'o' then :octal
+      when 'x' then :hexadecimal
+      end
     end
 
     def parse_decimal(s)
