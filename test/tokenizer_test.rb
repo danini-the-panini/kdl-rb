@@ -32,6 +32,12 @@ class TokenizerTest < Minitest::Test
 
   def test_integer
     assert_equal t(:INTEGER, 123), ::KDL::Tokenizer.new("123").next_token
+    assert_equal t(:INTEGER, 0x0123456789abcdef), ::KDL::Tokenizer.new("0x0123456789abcdef").next_token
+    assert_equal t(:INTEGER, 0o01234567), ::KDL::Tokenizer.new("0o01234567").next_token
+    assert_equal t(:INTEGER, 0b101001), ::KDL::Tokenizer.new("0b101001").next_token
+    assert_equal t(:INTEGER, -0x0123456789abcdef), ::KDL::Tokenizer.new("-0x0123456789abcdef").next_token
+    assert_equal t(:INTEGER, -0o01234567), ::KDL::Tokenizer.new("-0o01234567").next_token
+    assert_equal t(:INTEGER, -0b101001), ::KDL::Tokenizer.new("-0b101001").next_token
   end
 
   def test_float
