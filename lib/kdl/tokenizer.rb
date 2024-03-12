@@ -113,11 +113,11 @@ module KDL
             if c == '0' && n =~ /[box]/
               traverse(2)
               @buffer = ''
-              self.context = case n
-                             when 'b' then :binary
-                             when 'o' then :octal
-                             when 'x' then :hexadecimal
-                             end
+              self.context = integer_context(n)
+            elsif c == '-' && n == '0' && (n2 = @str[@index + 2]) =~ /[box]/
+              traverse(3)
+              @buffer = '-'
+              self.context = integer_context(n2)
             else
               self.context = :decimal
               @buffer = c
@@ -346,6 +346,14 @@ module KDL
         token(:IDENT, s)
       else
         raise
+      end
+    end
+
+    def integer_context(n)
+      case n
+      when 'b' then :binary
+      when 'o' then :octal
+      when 'x' then :hexadecimal
       end
     end
 
