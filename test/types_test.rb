@@ -89,7 +89,7 @@ class TypesTest < Minitest::Test
 
   class Bar < KDL::Node
     def initialize(node, type: nil)
-      super(node.name, node.arguments, node.properties, node.children, type: type)
+      super(node.name, arguments: node.arguments, properties: node.properties, children: node.children, type: type)
     end
   end
 end
