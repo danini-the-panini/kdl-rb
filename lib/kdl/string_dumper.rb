@@ -9,10 +9,6 @@ module KDL
 
       private
 
-      def print?(char)
-        ' ' <= char && char <= '\x7e'
-      end
-
       def escape(char)
         case char
         when "\n" then '\n'
