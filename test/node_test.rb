@@ -2,7 +2,7 @@ require "test_helper"
 
 class NodeTest < Minitest::Test
   def test_ref
-    node = KDL::Node.new("node", [v(1), v("two")], { "three" => v(3), "four" => v(4) })
+    node = KDL::Node.new("node", arguments: [v(1), v("two")], properties: { "three" => v(3), "four" => v(4) })
 
     assert_equal 1, node[0]
     assert_equal "two", node[1]
@@ -16,7 +16,7 @@ class NodeTest < Minitest::Test
   end
 
   def test_child
-    node = KDL::Node.new("node", [], {}, [
+    node = KDL::Node.new("node", children: [
       KDL::Node.new("foo"),
       KDL::Node.new("bar")
     ])
@@ -32,9 +32,9 @@ class NodeTest < Minitest::Test
   end
 
   def test_arg
-    node = KDL::Node.new("node", [], {}, [
-      KDL::Node.new("foo", [KDL::Value::String.new("bar")]),
-      KDL::Node.new("baz", [KDL::Value::String.new("qux")])
+    node = KDL::Node.new("node", children: [
+      KDL::Node.new("foo", arguments: [KDL::Value::String.new("bar")]),
+      KDL::Node.new("baz", arguments: [KDL::Value::String.new("qux")])
     ])
 
     assert_equal "bar", node.arg(0)
@@ -48,9 +48,9 @@ class NodeTest < Minitest::Test
   end
 
   def test_args
-    node = KDL::Node.new("node", [], {}, [
-      KDL::Node.new("foo", [KDL::Value::String.new("bar"), KDL::Value::String.new("baz")]),
-      KDL::Node.new("qux", [KDL::Value::String.new("norf")])
+    node = KDL::Node.new("node", children: [
+      KDL::Node.new("foo", arguments: [KDL::Value::String.new("bar"), KDL::Value::String.new("baz")]),
+      KDL::Node.new("qux", arguments: [KDL::Value::String.new("norf")])
     ])
 
     assert_equal ["bar", "baz"], node.args(0)
@@ -64,11 +64,11 @@ class NodeTest < Minitest::Test
   end
 
   def test_dash_vals
-    node = KDL::Node.new("node", [], {}, [
-      KDL::Node.new("node", [], {}, [
-        KDL::Node.new("-", [KDL::Value::String.new("foo")]),
-        KDL::Node.new("-", [KDL::Value::String.new("bar")]),
-        KDL::Node.new("-", [KDL::Value::String.new("baz")])
+    node = KDL::Node.new("node", children: [
+      KDL::Node.new("node", children: [
+        KDL::Node.new("-", arguments: [KDL::Value::String.new("foo")]),
+        KDL::Node.new("-", arguments: [KDL::Value::String.new("bar")]),
+        KDL::Node.new("-", arguments: [KDL::Value::String.new("baz")])
       ])
     ])
 
@@ -80,20 +80,20 @@ class NodeTest < Minitest::Test
   end
 
   def test_to_s
-    node = ::KDL::Node.new("foo", [v(1), v("two")], { "three" => v(3) })
+    node = ::KDL::Node.new("foo", arguments: [v(1), v("two")], properties: { "three" => v(3) })
 
     assert_equal 'foo 1 two three=3', node.to_s
   end
 
   def test_nested_to_s
-    node = ::KDL::Node.new("a1", [v("a"), v(1)], { a: v(1) }, [
-      ::KDL::Node.new("b1", [v("b"), v(1, "foo")], {}, [
-        ::KDL::Node.new("c1", [v("c"), v(1)])
+    node = ::KDL::Node.new("a1", arguments: [v("a"), v(1)], properties: { a: v(1) }, children: [
+      ::KDL::Node.new("b1", arguments: [v("b"), v(1, "foo")], children: [
+        ::KDL::Node.new("c1", arguments: [v("c"), v(1)])
       ]),
-      ::KDL::Node.new("b2", [v("b")], { c: v(2, "bar") }, [
-        ::KDL::Node.new("c2", [v("c"), v(2)])
+      ::KDL::Node.new("b2", arguments: [v("b")], properties: { c: v(2, "bar") }, children: [
+        ::KDL::Node.new("c2", arguments: [v("c"), v(2)])
       ]),
-      ::KDL::Node.new("b3", [], {}, [], type: "baz"),
+      ::KDL::Node.new("b3", type: "baz"),
     ])
 
     assert_equal <<~KDL.strip, node.to_s

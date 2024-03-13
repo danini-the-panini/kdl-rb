@@ -20,8 +20,8 @@ class DocumentTest < Minitest::Test
 
   def test_arg
     doc = KDL::Document.new([
-      KDL::Node.new("foo", [KDL::Value::String.new("bar")]),
-      KDL::Node.new("baz", [KDL::Value::String.new("qux")])
+      KDL::Node.new("foo", arguments: [KDL::Value::String.new("bar")]),
+      KDL::Node.new("baz", arguments: [KDL::Value::String.new("qux")])
     ])
 
     assert_equal "bar", doc.arg(0)
@@ -36,8 +36,8 @@ class DocumentTest < Minitest::Test
 
   def test_args
     doc = KDL::Document.new([
-      KDL::Node.new("foo", [KDL::Value::String.new("bar"), KDL::Value::String.new("baz")]),
-      KDL::Node.new("qux", [KDL::Value::String.new("norf")])
+      KDL::Node.new("foo", arguments: [KDL::Value::String.new("bar"), KDL::Value::String.new("baz")]),
+      KDL::Node.new("qux", arguments: [KDL::Value::String.new("norf")])
     ])
 
     assert_equal ["bar", "baz"], doc.args(0)
@@ -52,10 +52,10 @@ class DocumentTest < Minitest::Test
 
   def test_dash_vals
     doc = KDL::Document.new([
-      KDL::Node.new("node", [], {}, [
-        KDL::Node.new("-", [KDL::Value::String.new("foo")]),
-        KDL::Node.new("-", [KDL::Value::String.new("bar")]),
-        KDL::Node.new("-", [KDL::Value::String.new("baz")])
+      KDL::Node.new("node", children: [
+        KDL::Node.new("-", arguments: [KDL::Value::String.new("foo")]),
+        KDL::Node.new("-", arguments: [KDL::Value::String.new("bar")]),
+        KDL::Node.new("-", arguments: [KDL::Value::String.new("baz")])
       ])
     ])
 
