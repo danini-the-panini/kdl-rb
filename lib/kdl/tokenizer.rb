@@ -300,9 +300,8 @@ module KDL
             @buffer += self[@index + 1]
             traverse(2)
           when '"'
-            string = convert_escapes(@buffer)
-            string = @context == :multiline_string ? unindent(string) : string
-            return token(:STRING, string).tap { traverse(1) }
+            string = @context == :multiline_string ? unindent(@buffer) : @buffer
+            return token(:STRING, convert_escapes(string)).tap { traverse(1) }
           when nil
             raise_error "Unterminated string literal"
           else
