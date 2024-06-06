@@ -24,7 +24,7 @@ Gem::Specification.new do |spec|
   spec.bindir        = "exe"
   spec.require_paths = ["lib"]
 
-  spec.add_development_dependency 'racc', '~> 1.5'
+  spec.add_dependency 'racc', '~> 1.5'
   spec.add_dependency 'simpleidn', '~> 0.2.1'
   spec.add_dependency 'bigdecimal', '~> 3.1.6'
   spec.add_dependency 'base64', '~> 0.2.0'
