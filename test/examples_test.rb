@@ -51,7 +51,7 @@ class ExamplesTest < Minitest::Test
   end
 
   def test_cargo
-    doc = ::KDL.parse_document(File.read(File.join(__dir__, 'examples/Cargo.kdl')))
+    doc = ::KDL.parse_document(File.open(File.join(__dir__, 'examples/Cargo.kdl'), "r:UTF-8", &:read))
     nodes = nodes! {
       package {
         name "kdl"
