@@ -14,17 +14,17 @@ class TokenizerTest < Minitest::Test
   end
 
   def test_rawstring
-    assert_equal t(:RAWSTRING, "foo\\nbar"), ::KDL::Tokenizer.new('r"foo\\nbar"').next_token
-    assert_equal t(:RAWSTRING, "foo\"bar"), ::KDL::Tokenizer.new('r#"foo"bar"#').next_token
-    assert_equal t(:RAWSTRING, "foo\"#bar"), ::KDL::Tokenizer.new('r##"foo"#bar"##').next_token
-    assert_equal t(:RAWSTRING, "\"foo\""), ::KDL::Tokenizer.new('r#""foo""#').next_token
+    assert_equal t(:RAWSTRING, "foo\\nbar"), ::KDL::Tokenizer.new('#"foo\\nbar"#').next_token
+    assert_equal t(:RAWSTRING, "foo\"bar"), ::KDL::Tokenizer.new('#"foo"bar"#').next_token
+    assert_equal t(:RAWSTRING, "foo\"#bar"), ::KDL::Tokenizer.new('##"foo"#bar"##').next_token
+    assert_equal t(:RAWSTRING, "\"foo\""), ::KDL::Tokenizer.new('#""foo""#').next_token
 
-    tokenizer = ::KDL::Tokenizer.new('node r"C:\\Users\\zkat\\"')
+    tokenizer = ::KDL::Tokenizer.new('node #"C:\\Users\\zkat\\"#')
     assert_equal t(:IDENT, "node"), tokenizer.next_token
     assert_equal t(:WS, " ", 1, 5), tokenizer.next_token
     assert_equal t(:RAWSTRING, "C:\\Users\\zkat\\", 1, 6), tokenizer.next_token
 
-    tokenizer = ::KDL::Tokenizer.new('other-node r#"hello"world"#')
+    tokenizer = ::KDL::Tokenizer.new('other-node #"hello"world"#')
     assert_equal t(:IDENT, "other-node"), tokenizer.next_token
     assert_equal t(:WS, " ", 1, 11), tokenizer.next_token
     assert_equal t(:RAWSTRING, "hello\"world", 1, 12), tokenizer.next_token
@@ -42,33 +42,49 @@ class TokenizerTest < Minitest::Test
 
   def test_float
     assert_equal t(:FLOAT, 1.23), ::KDL::Tokenizer.new("1.23").next_token
+    assert_equal t(:FLOAT, Float::INFINITY), ::KDL::Tokenizer.new("#inf").next_token
+    assert_equal t(:FLOAT, -Float::INFINITY), ::KDL::Tokenizer.new("#-inf").next_token
+    nan = ::KDL::Tokenizer.new("#nan").next_token
+    assert_equal :FLOAT, nan[0]
+    assert_predicate nan[1].value, :nan?
   end
 
   def test_boolean
-    assert_equal t(:TRUE, true), ::KDL::Tokenizer.new("true").next_token
-    assert_equal t(:FALSE, false), ::KDL::Tokenizer.new("false").next_token
+    assert_equal t(:TRUE, true), ::KDL::Tokenizer.new("#true").next_token
+    assert_equal t(:FALSE, false), ::KDL::Tokenizer.new("#false").next_token
   end
 
   def test_null
-    assert_equal t(:NULL, nil), ::KDL::Tokenizer.new("null").next_token
+    assert_equal t(:NULL, nil), ::KDL::Tokenizer.new("#null").next_token
   end
 
   def test_symbols
     assert_equal t(:LBRACE, '{'), ::KDL::Tokenizer.new("{").next_token
     assert_equal t(:RBRACE, '}'), ::KDL::Tokenizer.new("}").next_token
+  end
+
+  def test_equals
     assert_equal t(:EQUALS, '='), ::KDL::Tokenizer.new("=").next_token
+    assert_equal t(:EQUALS, ' ='), ::KDL::Tokenizer.new(" =").next_token
+    assert_equal t(:EQUALS, '= '), ::KDL::Tokenizer.new("= ").next_token
+    assert_equal t(:EQUALS, ' = '), ::KDL::Tokenizer.new(" = ").next_token
+    assert_equal t(:EQUALS, ' ='), ::KDL::Tokenizer.new(" =foo").next_token
+    assert_equal t(:EQUALS, "\uFE66"), ::KDL::Tokenizer.new("\uFE66").next_token
+    assert_equal t(:EQUALS, "\uFF1D"), ::KDL::Tokenizer.new("\uFF1D").next_token
+    assert_equal t(:EQUALS, "🟰"), ::KDL::Tokenizer.new("🟰").next_token
   end
 
   def test_whitespace
     assert_equal t(:WS, ' '), ::KDL::Tokenizer.new(" ").next_token
     assert_equal t(:WS, "\t"), ::KDL::Tokenizer.new("\t").next_token
     assert_equal t(:WS, "    \t"), ::KDL::Tokenizer.new("    \t").next_token
-  end
-
-  def test_escline
-    assert_equal t(:ESCLINE, "\\\n"), ::KDL::Tokenizer.new("\\\n").next_token
-    assert_equal t(:ESCLINE, "\\\n"), ::KDL::Tokenizer.new("\\\n//some comment").next_token
-    assert_equal t(:ESCLINE, "\\\n"), ::KDL::Tokenizer.new("\\\n //some comment").next_token
+    assert_equal t(:WS, "\\\n"), ::KDL::Tokenizer.new("\\\n").next_token
+    assert_equal t(:WS, "\\\n"), ::KDL::Tokenizer.new("\\\n//some comment").next_token
+    assert_equal t(:WS, "\\\n "), ::KDL::Tokenizer.new("\\\n //some comment").next_token
+    assert_equal t(:WS, " \\\n"), ::KDL::Tokenizer.new(" \\\n").next_token
+    assert_equal t(:WS, " \\\n"), ::KDL::Tokenizer.new(" \\\n//some comment").next_token
+    assert_equal t(:WS, " \\\n "), ::KDL::Tokenizer.new(" \\\n //some comment").next_token
+    assert_equal t(:WS, " \\\n  \\\n  "), ::KDL::Tokenizer.new(" \\\n  \\\n  ").next_token
   end
 
   def test_multiple_tokens
@@ -191,13 +207,18 @@ class TokenizerTest < Minitest::Test
     KDL
 
     assert_equal t(:IDENT, 'title'), tokenizer.next_token
-    assert_equal t(:WS, ' ', 1, 6), tokenizer.next_token
-    assert_equal t(:ESCLINE, "\\\n", 1, 7), tokenizer.next_token
-    assert_equal t(:WS, '  ', 2, 1), tokenizer.next_token
+    assert_equal t(:WS, " \\\n  ", 1, 6), tokenizer.next_token
     assert_equal t(:STRING, 'Some title', 2, 3), tokenizer.next_token
     assert_equal t(:NEWLINE, "\n", 2, 15), tokenizer.next_token
     assert_equal t(:EOF, :EOF, 3, 1), tokenizer.next_token
     assert_equal eof(3, 1), tokenizer.next_token
+  end
+
+  def test_tokens
+    tokenizer = ::KDL::Tokenizer.new "node1 {\n  foo\n  bar\n}"
+
+    assert_equal %i[IDENT WS LBRACE NEWLINE WS IDENT NEWLINE WS IDENT NEWLINE RBRACE EOF],
+                 tokenizer.tokens.map(&:first)
   end
 
   private

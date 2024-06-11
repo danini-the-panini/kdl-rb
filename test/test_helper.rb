@@ -30,9 +30,8 @@ class Minitest::Test
 
     def method_missing(name, *args, **kwargs, &block)
       node = ::KDL::Node.new(name.to_s,
-                             args.map { |a| ::KDL::Value.from(a) },
-                             kwargs.map { |k, v| [k.to_s, ::KDL::Value.from(v) ]}
-                                   .to_h)
+                             arguments: args.map { |a| ::KDL::Value.from(a) },
+                             properties: kwargs.map { |k, v| [k.to_s, ::KDL::Value.from(v) ]}.to_h)
       node.children = block_given? ? Nodes.nodes!(&block) : []
       @children << node
     end
