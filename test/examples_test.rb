@@ -1,8 +1,12 @@
 require "test_helper"
 
 class ExamplesTest < Minitest::Test
+  def read_example(name)
+    File.open(File.join(__dir__, "examples/#{name}.kdl"), "r:UTF-8", &:read)
+  end
+
   def test_ci
-    doc = ::KDL.parse_document(File.read(File.join(__dir__, 'examples/ci.kdl')))
+    doc = ::KDL.parse_document(read_example('ci'))
     nodes = nodes! {
       name("CI")
       on "push", "pull_request"
@@ -51,7 +55,7 @@ class ExamplesTest < Minitest::Test
   end
 
   def test_cargo
-    doc = ::KDL.parse_document(File.open(File.join(__dir__, 'examples/Cargo.kdl'), "r:UTF-8", &:read))
+    doc = ::KDL.parse_document(read_example('Cargo'))
     nodes = nodes! {
       package {
         name "kdl"
@@ -70,7 +74,7 @@ class ExamplesTest < Minitest::Test
   end
 
   def test_nuget
-    doc = ::KDL.parse_document(File.read(File.join(__dir__, 'examples/nuget.kdl')))
+    doc = ::KDL.parse_document(read_example('nuget'))
     # This file is particularly large. It would be nice to validate it, but for now
     # I'm just going to settle for making sure it parses.
     refute_nil doc
