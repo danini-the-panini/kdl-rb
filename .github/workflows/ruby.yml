@@ -25,12 +25,18 @@ jobs:
     - uses: actions/checkout@v2
       with:
         submodules: true
+
     - name: Set up Ruby
       uses: ruby/setup-ruby@v1
       with:
         ruby-version: ${{ matrix.ruby }}
         bundler-cache: true # install and cache dependencies
+
     - name: Build parser
       run: bundle exec racc lib/kdl/kdl.yy
+
     - name: Run tests
       run: bundle exec rake test
+
+    - name: Report Coveralls
+      uses: coverallsapp/github-action@v2
