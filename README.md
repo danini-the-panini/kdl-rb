@@ -1,6 +1,8 @@
 # KDL
 
+[![Gem Version](https://badge.fury.io/rb/kdl.svg)](https://badge.fury.io/rb/kdl)
 [![Actions Status](https://github.com/danini-the-panini/kdl-rb/workflows/Ruby/badge.svg)](https://github.com/danini-the-panini/kdl-rb/actions)
+[![Coverage Status](https://coveralls.io/repos/github/danini-the-panini/kdl-rb/badge.svg?branch=main)](https://coveralls.io/github/danini-the-panini/kdl-rb?branch=main)
 
 This is a Ruby implementation of the [KDL Document Language](https://kdl.dev)
 
