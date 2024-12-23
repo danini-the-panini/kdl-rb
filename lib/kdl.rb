@@ -8,6 +8,11 @@ require "kdl/types"
 require "kdl/kdl.tab"
 
 module KDL
+  def self.parse_document(input, options = {})
+    warn "[DEPRECATION] `KDL.parse_document' is deprecated. Please use `KDL.parse' instead."
+    parse(input, **options)
+  end
+
   def self.parse(input, **options)
     Parser.new.parse(input, **options)
   end
