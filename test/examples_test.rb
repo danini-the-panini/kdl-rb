@@ -47,7 +47,7 @@ class ExamplesTest < Minitest::Test
             }
             step("Clippy") { run "cargo", "clippy", "--all", "--", "-D", "warnings" }
             step("Run tests") { run "cargo", "test", "--all", "--verbose" }
-            step "Other Stuff", run: "  echo foo\n  echo bar\n  echo baz"
+            step "Other Stuff", run: "echo foo\necho bar\necho baz"
           }
         }
       }

@@ -69,9 +69,6 @@ class TokenizerTest < Minitest::Test
     assert_equal t(:EQUALS, '= '), ::KDL::Tokenizer.new("= ").next_token
     assert_equal t(:EQUALS, ' = '), ::KDL::Tokenizer.new(" = ").next_token
     assert_equal t(:EQUALS, ' ='), ::KDL::Tokenizer.new(" =foo").next_token
-    assert_equal t(:EQUALS, "\uFE66"), ::KDL::Tokenizer.new("\uFE66").next_token
-    assert_equal t(:EQUALS, "\uFF1D"), ::KDL::Tokenizer.new("\uFF1D").next_token
-    assert_equal t(:EQUALS, "🟰"), ::KDL::Tokenizer.new("🟰").next_token
   end
 
   def test_whitespace
@@ -142,7 +139,7 @@ class TokenizerTest < Minitest::Test
 
     tokenizer = ::KDL::Tokenizer.new <<~KDL
       smile "😁"
-      ノード お名前＝"☜(ﾟヮﾟ☜)"
+      ノード お名前="☜(ﾟヮﾟ☜)"
     KDL
 
     assert_equal t(:IDENT, 'smile'), tokenizer.next_token
@@ -152,7 +149,7 @@ class TokenizerTest < Minitest::Test
     assert_equal t(:IDENT, 'ノード', 2, 1), tokenizer.next_token
     assert_equal t(:WS, ' ', 2, 4), tokenizer.next_token
     assert_equal t(:IDENT, 'お名前', 2, 5), tokenizer.next_token
-    assert_equal t(:EQUALS, '＝', 2, 8), tokenizer.next_token
+    assert_equal t(:EQUALS, '=', 2, 8), tokenizer.next_token
     assert_equal t(:STRING, '☜(ﾟヮﾟ☜)', 2, 9), tokenizer.next_token
     assert_equal t(:NEWLINE, "\n", 2, 18), tokenizer.next_token
     assert_equal t(:EOF, :EOF, 3, 1), tokenizer.next_token

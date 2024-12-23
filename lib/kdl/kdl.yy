@@ -13,32 +13,37 @@ rule
   document  : nodes { KDL::Document.new(val[0]) }
             | linespaces { KDL::Document.new([]) }
 
-  nodes         : none                        { [] }
-                | linespaces node             { [val[1]] }
-                | linespaces empty_node       { [] }
-                | nodes node                  { [*val[0], val[1]] }
-                | nodes empty_node            { val[0] }
-  node          : unterm_node node_term       { val[0] }
-  unterm_node   : untyped_node      { val[0] }
-                | type untyped_node { val[1].as_type(val[0], @type_parsers.fetch(val[0], nil)) }
-  untyped_node  : node_decl                { val[0].tap { |x| x.children = [] } }
-                | node_decl node_children  { val[0].tap { |x| x.children = val[1] } }
-                | node_decl empty_children { val[0].tap { |x| x.children = [] } }
-  node_decl     : identifier                                   { KDL::Node.new(val[0]) }
-                | node_decl ws_plus value                      { val[0].tap { |x| x.arguments << val[2] } }
-                | node_decl ws_plus SLASHDASH ws_star value    { val[0] }
-                | node_decl ws_plus property                   { val[0].tap { |x| x.properties[val[2][0]] = val[2][1] } }
-                | node_decl ws_plus SLASHDASH ws_star property { val[0] }
-                | node_decl ws_plus                            { val[0] }
-  empty_node    : SLASHDASH ws_star node
-  node_children : ws_star LBRACE nodes RBRACE                       { val[2] }
-                | ws_star LBRACE linespaces RBRACE                  { [] }
-                | ws_star LBRACE nodes unterm_node ws_star RBRACE   { [*val[2], val[3]] }
-                | ws_star LBRACE linespaces unterm_node ws_star RBRACE   { [val[3]] }
-  empty_children: SLASHDASH node_children
-                | ws_plus empty_children
+  nodes          : none                        { [] }
+                 | linespaces node             { [val[1]] }
+                 | linespaces empty_node       { [] }
+                 | nodes node                  { [*val[0], val[1]] }
+                 | nodes empty_node            { val[0] }
+  node           : unterm_node node_term       { val[0] }
+  unterm_node    : untyped_node      { val[0] }
+                 | type untyped_node { val[1].as_type(val[0], @type_parsers.fetch(val[0], nil)) }
+  untyped_node   : node_decl                                               { val[0].tap { |x| x.children = [] } }
+                 | node_decl node_children                                 { val[0].tap { |x| x.children = val[1] } }
+                 | node_decl empty_childrens                               { val[0].tap { |x| x.children = [] } }
+                 | node_decl empty_childrens node_children                 { val[0].tap { |x| x.children = val[2] } }
+                 | node_decl node_children empty_childrens                 { val[0].tap { |x| x.children = val[1] } }
+                 | node_decl empty_childrens node_children empty_childrens { val[0].tap { |x| x.children = val[2] } }
+  node_decl      : identifier                           { KDL::Node.new(val[0]) }
+                 | node_decl ws_plus value              { val[0].tap { |x| x.arguments << val[2] } }
+                 | node_decl ws_plus slashdash value    { val[0] }
+                 | node_decl ws_plus property           { val[0].tap { |x| x.properties[val[2][0]] = val[2][1] } }
+                 | node_decl ws_plus slashdash property { val[0] }
+                 | node_decl ws_plus                    { val[0] }
+  empty_node     : slashdash node
+  node_children  : ws_star LBRACE nodes RBRACE                          { val[2] }
+                 | ws_star LBRACE linespaces RBRACE                     { [] }
+                 | ws_star LBRACE nodes unterm_node ws_star RBRACE      { [*val[2], val[3]] }
+                 | ws_star LBRACE linespaces unterm_node ws_star RBRACE { [val[3]] }
+  empty_children : slashdash node_children
+                 | ws_plus empty_children
+  empty_childrens: empty_children | empty_childrens empty_children
   node_term: linespaces | semicolon_term
   semicolon_term: SEMICOLON | SEMICOLON linespaces
+  slashdash: SLASHDASH | slashdash ws_plus | slashdash linespaces
 
   type : LPAREN ws_star identifier ws_star RPAREN ws_star { val[2] }
 

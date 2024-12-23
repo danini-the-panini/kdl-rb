@@ -33,13 +33,12 @@ module KDL
 
     attr_reader :index
 
-    EQUALS = ['=', "﹦", "＝", "🟰"]
-
     SYMBOLS = {
       '{' => :LBRACE,
       '}' => :RBRACE,
-      ';' => :SEMICOLON
-    }.merge(EQUALS.map { |x| [x, :EQUALS] }.to_h)
+      ';' => :SEMICOLON,
+      '=' => :EQUALS
+    }
 
     WHITESPACE = ["\u0009", "\u000B", "\u0020", "\u00A0",
                   "\u1680", "\u2000", "\u2001", "\u2002",
@@ -49,9 +48,9 @@ module KDL
 
     NEWLINES = ["\u000A", "\u0085", "\u000C", "\u2028", "\u2029"]
 
-    NON_IDENTIFIER_CHARS = Regexp.escape "#{SYMBOLS.keys.join('')}()[]/\\\"#\s"
-    IDENTIFIER_CHARS = /[^#{NON_IDENTIFIER_CHARS}\x0-\x20]/
-    INITIAL_IDENTIFIER_CHARS = /[^#{NON_IDENTIFIER_CHARS}0-9\x0-\x20]/
+    NON_IDENTIFIER_CHARS = Regexp.escape "#{SYMBOLS.keys.join('')}()[]/\\\"##{WHITESPACE.join}"
+    IDENTIFIER_CHARS = /[^#{NON_IDENTIFIER_CHARS}\x0-\x19]/
+    INITIAL_IDENTIFIER_CHARS = /[^#{NON_IDENTIFIER_CHARS}0-9\x0-\x19]/
 
     FORBIDDEN = [
       *"\u0000".."\u0008",
@@ -114,10 +113,14 @@ module KDL
         when nil
           case c
           when '"'
-            if self[@index + 1] == "\n"
-              self.context = :multiline_string
-              @buffer = ''
-              traverse(2)
+            if self[@index + 1] == '"' && self[@index + 2] == '"'
+              if self[@index + 3] == "\n"
+                self.context = :multiline_string
+                @buffer = ''
+                traverse(4)
+              else
+                raise_error "Expected NEWLINE, found '#{self[@index + 3]}'"
+              end
             else
               self.context = :string
               @buffer = ''
@@ -125,12 +128,16 @@ module KDL
             end
           when '#'
             if self[@index + 1] == '"'
-              if self[@index + 2] == "\n"
-                self.context = :multiline_rawstring
-                @rawstring_hashes = 1
-                @buffer = ''
-                traverse(3)
-                next
+              if self[@index + 2] == '"' && self[@index + 3] == '"'
+                if self[@index + 4] == "\n"
+                  self.context = :multiline_rawstring
+                  @rawstring_hashes = 1
+                  @buffer = ''
+                  traverse(5)
+                  next
+                else
+                  raise_error "Expected NEWLINE, found '#{self[@index + 3]}'"
+                end
               else
                 self.context = :rawstring
                 traverse(2)
@@ -139,21 +146,25 @@ module KDL
                 next
               end
             elsif self[@index + 1] == '#'
-              i = @index + 1
-              @rawstring_hashes = 1
+              i = @index + 2
+              @rawstring_hashes = 2
               while self[i] == '#'
                 @rawstring_hashes += 1
                 i += 1
               end
               if self[i] == '"'
-                if self[i + 1] == "\n"
-                  self.context = :multiline_rawstring
-                  @index = i + 2
-                  @buffer = ''
-                  next
+                if self[i + 1] == '"' && self[i + 2] == '"'
+                  if self[i + 3] == "\n"
+                    self.context = :multiline_rawstring
+                    traverse(@rawstring_hashes + 4)
+                    @buffer = ''
+                    next
+                  else
+                    raise_error "Expected NEWLINE, found '#{self[@index + 3]}'"
+                  end
                 else
                   self.context = :rawstring
-                  @index = i + 1
+                  traverse(@rawstring_hashes + 1)
                   @buffer = ''
                   next
                 end
@@ -193,15 +204,14 @@ module KDL
             t = Tokenizer.new(@str, @index + 1)
             la = t.next_token
             if la[0] == :NEWLINE || la[0] == :EOF || (la[0] == :WS && (lan = t.next_token[0]) == :NEWLINE || lan == :EOF)
-              @index = t.index
-              new_line
+              traverse_to(t.index)
               @buffer = "#{c}#{la[1].value}"
               @buffer += "\n" if lan == :NEWLINE
               self.context = :whitespace
             else
               raise_error "Unexpected '\\' (#{la[0]})"
             end
-          when *EQUALS
+          when '='
             self.context = :equals
             @buffer = c
             traverse(1)
@@ -212,18 +222,15 @@ module KDL
             if n == "\n"
               return token(:NEWLINE, "#{c}#{n}").tap do
                 traverse(2)
-                new_line
               end
             else
               return token(:NEWLINE, c).tap do
                 traverse(1)
-                new_line
               end
             end
           when *NEWLINES
             return token(:NEWLINE, c).tap do
               traverse(1)
-              new_line
             end
           when "/"
             if self[@index + 1] == '/'
@@ -290,35 +297,77 @@ module KDL
             when '#inf'   then return token(:FLOAT, Float::INFINITY)
             when '#-inf'  then return token(:FLOAT, -Float::INFINITY)
             when '#nan'   then return token(:FLOAT, Float::NAN)
-            else raise_error "Unknown keyword"
+            else raise_error "Unknown keyword #{@buffer.inspect}"
             end
           end
-        when :string, :multiline_string
+        when :string
           case c
           when '\\'
             @buffer += c
-            @buffer += self[@index + 1]
-            traverse(2)
+            c2 = self[@index + 1]
+            @buffer += c2
+            if NEWLINES.include?(c2)
+              i = 2
+              while NEWLINES.include?(self[@index + i])
+                @buffer += self[@index + i]
+                i+=1
+              end
+              traverse(i)
+            else
+              traverse(2)
+            end
           when '"'
-            string = @context == :multiline_string ? unindent(@buffer) : @buffer
-            return token(:STRING, convert_escapes(string)).tap { traverse(1) }
+            return token(:STRING, unescape(@buffer)).tap { traverse(1) }
+          when *NEWLINES
+            raise_error "Unexpected newline in string literal"
           when nil
             raise_error "Unterminated string literal"
           else
             @buffer += c
             traverse(1)
           end
-        when :rawstring, :multiline_rawstring
+        when :multiline_string
+          case c
+          when '\\'
+            @buffer += c
+            @buffer += self[@index + 1]
+            traverse(2)
+          when '"'
+            if self[@index + 1] == '"' && self[@index + 2] == '"'
+              return token(:STRING, unescape_non_ws(dedent(unescape_ws(@buffer)))).tap { traverse(3) }
+            end
+            @buffer += c
+            traverse(1)
+          when nil
+            raise_error "Unterminated multi-line string literal"
+          else
+            @buffer += c
+            traverse(1)
+          end
+        when :rawstring
           raise_error "Unterminated rawstring literal" if c.nil?
 
           if c == '"'
             h = 0
-            while self[@index + 1 + h] == '#' && h < @rawstring_hashes
-              h += 1
-            end
+            h += 1 while self[@index + 1 + h] == '#' && h < @rawstring_hashes
             if h == @rawstring_hashes
-              string = @context == :multiline_rawstring ? unindent(@buffer) : @buffer
-              return token(:RAWSTRING, string).tap { traverse(1 + h) }
+              return token(:RAWSTRING, @buffer).tap { traverse(1 + h) }
+            end
+          elsif NEWLINES.include?(c)
+            raise_error "Unexpected newline in rawstring literal"
+
+          end
+
+          @buffer += c
+          traverse(1)
+        when :multiline_rawstring
+          raise_error "Unterminated multi-line rawstring literal" if c.nil?
+
+          if c == '"' && self[@index + 1] == '"' && self[@index + 2] == '"' && self[@index + 3] == '#'
+            h = 1
+            h += 1 while self[@index + 3 + h] == '#' && h < @rawstring_hashes
+            if h == @rawstring_hashes
+              return token(:RAWSTRING, dedent(@buffer)).tap { traverse(3 + h) }
             end
           end
 
@@ -384,7 +433,7 @@ module KDL
           if WHITESPACE.include?(c)
             traverse(1)
             @buffer += c
-          elsif EQUALS.include?(c)
+          elsif c == '='
             self.context = :equals
             @buffer += c
             traverse(1)
@@ -396,8 +445,7 @@ module KDL
             t = Tokenizer.new(@str, @index + 1)
             la = t.next_token
             if la[0] == :NEWLINE || la[0] == :EOF || (la[0] == :WS && (lan = t.next_token[0]) == :NEWLINE || lan == :EOF)
-              @index = t.index
-              new_line
+              traverse_to(t.index)
               @buffer += "#{c}#{la[1].value}"
               @buffer += "\n" if lan == :NEWLINE
             else
@@ -411,7 +459,7 @@ module KDL
           la = t.next_token
           if la[0] == :WS
             @buffer += la[1].value
-            @index = t.index
+            traverse_to(t.index)
           end
           return token(:EQUALS, @buffer)
         end
@@ -425,17 +473,23 @@ module KDL
     end
 
     def traverse(n = 1)
-      @column += n
+      n.times do |i|
+        if self[@index + i] == "\n"
+          @line += 1
+          @column = 1
+        else
+          @column += 1
+        end
+      end
       @index += n
+    end
+
+    def traverse_to(i)
+      traverse(i - @index)
     end
 
     def raise_error(message)
       raise Error.new(message, @line, @column)
-    end
-
-    def new_line
-      @column = 1
-      @line += 1
     end
 
     def context=(val)
@@ -473,14 +527,6 @@ module KDL
       end
     end
 
-    def integer_context(n)
-      case n
-      when 'b' then :binary
-      when 'o' then :octal
-      when 'x' then :hexadecimal
-      end
-    end
-
     def parse_float(s)
       match, _, fraction, exponent = *s.match(/^([-+]?[\d_]+)(?:\.([\d_]+))?(?:[eE]([-+]?[\d_]+))?$/)
       raise_error "Invalid floating point value #{s}" if match.nil?
@@ -513,46 +559,95 @@ module KDL
       s.chomp('_').squeeze('_')
     end
 
-    def convert_escapes(string)
-      string.gsub(/\\(\s+|[^u])/) do |m|
+    def unescape_ws(string)
+      string.gsub(/\\(\\|\s+)/) do |m|
         case m
-        when '\n' then "\n"
-        when '\r' then "\r"
-        when '\t' then "\t"
-        when '\\\\' then "\\"
-        when '\"' then "\""
-        when '\b' then "\b"
-        when '\f' then "\f"
-        when '\s' then ' '
-        when /\\\s+/ then ''
-        else raise_error "Unexpected escape #{m.inspect}"
+        when '\\\\' then '\\\\'
+        else ''
         end
-      end.gsub(/\\u\{[0-9a-fA-F]{0,6}\}/) do |m|
-        i = Integer(m[3..-2], 16)
-        if i < 0 || i > 0x10FFFF
-          raise_error "Invalid code point #{u}"
-        end
-        i.chr(Encoding::UTF_8)
       end
     end
 
-    def unindent(string)
+    UNESCAPE        = /\\(?:[#{WHITESPACE.join}#{NEWLINES.join}]+|[^u])/
+    UNESCAPE_NON_WS = /\\(?:[^u])/
+
+    def unescape_non_ws(string)
+      unescape(string, UNESCAPE_NON_WS)
+    end
+
+    def unescape(string, rgx = UNESCAPE)
+      string
+        .gsub(rgx) { |m| replace_esc(m) }
+        .gsub(/\\u\{[0-9a-fA-F]{0,6}\}/) do |m|
+          i = Integer(m[3..-2], 16)
+          if i < 0 || i > 0x10FFFF
+            raise_error "Invalid code point #{u}"
+          end
+          i.chr(Encoding::UTF_8)
+        end
+    end
+
+    def replace_esc(m)
+      case m
+      when '\n' then "\n"
+      when '\r' then "\r"
+      when '\t' then "\t"
+      when '\\\\' then "\\"
+      when '\"' then "\""
+      when '\b' then "\b"
+      when '\f' then "\f"
+      when '\s' then ' '
+      when /\\[#{WHITESPACE.join}#{NEWLINES.join}]+/ then ''
+      else raise_error "Unexpected escape #{m.inspect}"
+      end
+    end
+
+    def dedent(string)
       lines = string.lines
       if lines.last.end_with?("\n")
         indent = ""
       else
         *lines, indent = lines
       end
-
+      return "" if lines.empty?
+      lines.map!(&:chomp)
       if !indent.empty? && indent.each_char.any? { |c| !WHITESPACE.include?(c) }
         raise_error "Invalid multiline string final line"
       end
-      if lines.any? { |line| !line.start_with?(indent) }
-        raise_error "Invalid multiline string indentation"
-      end
 
-      lines.last.chomp!
-      lines.map { |line| line.gsub(/\A#{indent}/, '') }.join
+      lines.map! do |line|
+        fail = false
+        match_indent = true
+        whitespace = true
+        line.each_char.with_index do |c, i|
+          if i < indent.size
+            next if c == indent[i]
+            if WHITESPACE.include?(c)
+              match_indent = false
+            else
+              fail = true
+              break
+            end
+          else
+            next if WHITESPACE.include?(c)
+            if !match_indent
+              fail = true
+              break
+            else
+              whitespace = false
+              break
+            end
+          end
+        end
+        raise_error "Invalid multiline string indentation" if fail
+
+        if whitespace
+          ''
+        else
+          line[indent.length..]
+        end
+      end
+      lines.join("\n")
     end
 
     def debom(str)

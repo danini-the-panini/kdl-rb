@@ -124,11 +124,11 @@ class ParserTest < Minitest::Test
 
   def test_unindented_multiline_strings
     assert_equal ::KDL::Document.new([::KDL::Node.new('node', arguments: [::KDL::Value::String.new("foo\nbar\n  baz\nqux")])]),
-                 @parser.parse("node \"\n  foo\n  bar\n    baz\n  qux\n  \"")
+      @parser.parse(%Q(node """\n  foo\n  bar\n    baz\n  qux\n  """))
     assert_equal ::KDL::Document.new([::KDL::Node.new('node', arguments: [::KDL::Value::String.new("foo\nbar\n  baz\nqux")])]),
-                @parser.parse("node #\"\n  foo\n  bar\n    baz\n  qux\n  \"#")
-    assert_raises { @parser.parse("node \"\n    foo\n  bar\n    baz\n    \"")}
-    assert_raises { @parser.parse("node #\"\n    foo\n  bar\n    baz\n    \"#")}
+      @parser.parse(%Q(node #"""\n  foo\n  bar\n    baz\n  qux\n  """#))
+    assert_raises { @parser.parse(%Q(node """\n    foo\n  bar\n    baz\n    """))}
+    assert_raises { @parser.parse(%Q(node #"""\n    foo\n  bar\n    baz\n    """#))}
   end
 
   def test_float
@@ -374,9 +374,11 @@ class ParserTest < Minitest::Test
 
   def test_multiline_strings
     doc = @parser.parse <<~KDL
-      string "my
+      string """
+      my
       multiline
-      value"
+      value
+      """
     KDL
     nodes = nodes! {
       string "my\nmultiline\nvalue"
@@ -461,7 +463,7 @@ class ParserTest < Minitest::Test
   def test_utf8
     doc = @parser.parse <<~KDL
       smile "😁"
-      ノード お名前＝"☜(ﾟヮﾟ☜)"
+      ノード お名前="☜(ﾟヮﾟ☜)"
     KDL
     nodes = ::KDL::Document.new([
       ::KDL::Node.new('smile', arguments: [::KDL::Value::String.new('😁')]),
