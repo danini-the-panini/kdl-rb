@@ -4,6 +4,9 @@ class ValueTest < Minitest::Test
   def test_to_s
     assert_equal "1", ::KDL::Value::Int.new(1).to_s
     assert_equal "1.5", ::KDL::Value::Float.new(1.5).to_s
+    assert_equal "#inf", ::KDL::Value::Float.new(Float::INFINITY).to_s
+    assert_equal "#-inf", ::KDL::Value::Float.new(-Float::INFINITY).to_s
+    assert_equal "#nan", ::KDL::Value::Float.new(Float::NAN).to_s
     assert_equal "#true", ::KDL::Value::Boolean.new(true).to_s
     assert_equal "#false", ::KDL::Value::Boolean.new(false).to_s
     assert_equal "#null", ::KDL::Value::Null.to_s
