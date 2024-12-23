@@ -1,16 +1,29 @@
 module KDL
   module V1
     class Value < ::KDL::Value
-      def to_s
-        return stringify_value unless type
+      module Methods
+        def to_s
+          return stringify_value unless type
 
-        "(#{StringDumper.stringify_identifier type})#{stringify_value}"
+          "(#{StringDumper.stringify_identifier type})#{stringify_value}"
+        end
+
+        def ==(other)
+          return self == other.value if other.is_a?(self.class.superclass)
+
+          value == other
+        end
       end
 
+      include Methods
+
       class Int < ::KDL::Value::Int
+        include Methods
       end
 
       class Float < ::KDL::Value::Float
+        include Methods
+
         def stringify_value
           if value.nan? || value.infinite?
             warn "[WARNING] Attempting to serialize non-finite Float using KDL v1"
@@ -21,18 +34,24 @@ module KDL
       end
 
       class Boolean < ::KDL::Value::Boolean
+        include Methods
+
         def stringify_value
           value.to_s
         end
       end
 
       class String < ::KDL::Value::String
+        include Methods
+
         def stringify_value
           StringDumper.call(value)
         end
       end
 
       class NullImpl < ::KDL::Value::NullImpl
+        include Methods
+
         def stringify_value
           "null"
         end

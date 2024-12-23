@@ -24,8 +24,8 @@ class ValueTest < Minitest::Test
     )
     assert_equal(KDL::Value::String.new("bar"), KDL::Value::from("bar"))
     assert_equal(KDL::Value::Boolean.new(true), KDL::Value::from(true))
-
     assert_equal(KDL::Value::Null, KDL::Value::from(nil))
+    assert_raises { ::KDL::Value.from(Object.new) }
   end
 
   def test_equal
@@ -54,6 +54,20 @@ class ValueTest < Minitest::Test
     refute_equal ::KDL::Value::String.new("lorem"), "ipsum"
   end
 
+  class Something < KDL::Value
+  end
+
+  def test_as_type
+    value = ::KDL::Value::String.new("foo")
+    assert_equal "bar", value.as_type("bar").type
+    assert_kind_of Something, value.as_type("bar", lambda { |v, type| Something.new(v) })
+    nil_parse = value.as_type("bar", lambda { |v, type| nil })
+    assert_equal value, nil_parse
+    assert_equal "bar", nil_parse.type
+
+    assert_raises { value.as_type("bar", lambda { |v, type| Object.new }) }
+  end
+
   def test_inspect
     assert_equal "1", ::KDL::Value::Int.new(1).inspect
     assert_equal "1.5", ::KDL::Value::Float.new(1.5).inspect
@@ -62,6 +76,7 @@ class ValueTest < Minitest::Test
     assert_equal "nil", ::KDL::Value::Null.inspect
     assert_equal '"foo"', ::KDL::Value::String.new("foo").inspect
     assert_equal '"foo \"bar\" baz"', ::KDL::Value::String.new('foo "bar" baz').inspect
+    assert_equal '("ty")"foo"', ::KDL::Value::String.new("foo", type: 'ty').inspect
   end
 
   def test_method_missing

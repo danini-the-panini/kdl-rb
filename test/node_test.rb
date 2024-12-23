@@ -28,6 +28,9 @@ class NodeTest < Minitest::Test
     assert_equal node.children[0], node.child(:foo)
     assert_equal node.children[1], node.child(:bar)
 
+    a = []; node.each { a << _1.name }
+    assert_equal ["foo", "bar"], a
+
     assert_raises { node.child(nil) }
   end
 
@@ -60,7 +63,13 @@ class NodeTest < Minitest::Test
     assert_equal ["norf"], node.args(:qux)
     assert_nil node.args(:wat)
 
-    assert_raises { node.arg(nil) }
+    a = []; node.each_arg(:foo) { a << _1 }
+    assert_equal ["bar", "baz"], a
+
+    a = []; node.each_arg(:wat) { a << _1 }
+    assert_equal [], a
+
+    assert_raises { node.args(nil) }
   end
 
   def test_dash_vals
@@ -75,6 +84,13 @@ class NodeTest < Minitest::Test
     assert_equal ["foo", "bar", "baz"], node.dash_vals(0)
     assert_equal ["foo", "bar", "baz"], node.dash_vals("node")
     assert_equal ["foo", "bar", "baz"], node.dash_vals(:node)
+    assert_nil node.dash_vals(:nope)
+
+    a = []; node.each_dash_val(:node) { a << _1 }
+    assert_equal ["foo", "bar", "baz"], a
+
+    a = []; node.each_dash_val(:nope) { a << _1 }
+    assert_equal [], a
 
     assert_raises { node.dash_vals(nil) }
   end
@@ -107,6 +123,41 @@ class NodeTest < Minitest::Test
           (baz)b3
       }
     KDL
+
+    assert_equal <<~KDL.strip, node.inspect
+      "a1" "a" 1 "a"=1 {
+          "b1" "b" ("foo")1 {
+              "c1" "c" 1
+          }
+          "b2" "b" "c"=("bar")2 {
+              "c2" "c" 2
+          }
+          ("baz")"b3"
+      }
+    KDL
+  end
+
+  def test_compare
+    a = KDL::Node.new("a")
+    b = KDL::Node.new("b")
+
+    assert_equal -1, a <=> b
+    assert_equal  1, b <=> a
+    assert_equal  0, a <=> a
+  end
+
+  class Something < KDL::Node
+  end
+
+  def test_as_type
+    node = KDL::Node.new("foo")
+    assert_equal "bar", node.as_type("bar").type
+    assert_kind_of Something, node.as_type("bar", lambda { |n, type| Something.new(n) })
+    nil_parse = node.as_type("bar", lambda { |n, type| nil })
+    assert_equal node, nil_parse
+    assert_equal "bar", nil_parse.type
+
+    assert_raises { node.as_type("bar", lambda { |n, type| Object.new }) }
   end
 
   private

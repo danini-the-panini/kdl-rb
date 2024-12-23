@@ -24,7 +24,12 @@ class KDL::V1::ValueTest < Minitest::Test
     )
     assert_equal(::KDL::V1::Value::String.new("bar"), ::KDL::V1::Value::from("bar"))
     assert_equal(::KDL::V1::Value::Boolean.new(true), ::KDL::V1::Value::from(true))
-
     assert_equal(::KDL::V1::Value::Null, ::KDL::V1::Value::from(nil))
+    assert_raises { ::KDL::V1::Value.from(Object.new) }
+  end
+
+  def test_equal
+    assert(::KDL::V1::Value::String.new("foo") == ::KDL::Value::String.new("foo"))
+    assert(::KDL::Value::String.new("foo") == ::KDL::V1::Value::String.new("foo"))
   end
 end

@@ -120,6 +120,7 @@ class ParserTest < Minitest::Test
                  @parser.parse('node "\u{10}"')
     assert_raises { @parser.parse('node "\i"') }
     assert_raises { @parser.parse('node "\u{c0ffee}"') }
+    assert_raises { @parser.parse('node "oops') }
   end
 
   def test_unindented_multiline_strings
@@ -271,6 +272,7 @@ class ParserTest < Minitest::Test
     assert_equal ::KDL::Document.new([::KDL::Node.new('node')]), @parser.parse("node\\\n")
     assert_equal ::KDL::Document.new([::KDL::Node.new('node')]), @parser.parse("node\\ \n")
     assert_equal ::KDL::Document.new([::KDL::Node.new('node')]), @parser.parse("node\\\n ")
+    assert_raises { @parser.parse("node \\foo") }
   end
 
   def test_whitespace
@@ -385,6 +387,27 @@ class ParserTest < Minitest::Test
       string "my\nmultiline\nvalue"
     }
     assert_equal nodes, doc
+
+    assert_raises do
+      @parser.parse <<~KDL
+        node """foo"""
+      KDL
+    end
+    assert_raises do
+      @parser.parse <<~KDL
+        node #"""foo"bar"""#
+      KDL
+    end
+    assert_raises do
+      @parser.parse <<~KDL
+        node """oops
+      KDL
+    end
+    assert_raises do
+      @parser.parse <<~KDL
+        node #"""oops
+      KDL
+    end
   end
 
   def test_numbers

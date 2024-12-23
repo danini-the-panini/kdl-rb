@@ -59,7 +59,7 @@ module KDL
     end
 
     def each_dash_val(key, &block)
-      dash_vals(key).each(&:block)
+      dash_vals(key)&.each(&block)
     end
 
     def each(&block)
