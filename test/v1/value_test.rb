@@ -12,6 +12,7 @@ class KDL::V1::ValueTest < Minitest::Test
     assert_equal "null", ::KDL::V1::Value::Null.to_s
     assert_equal '"foo"', ::KDL::V1::Value::String.new("foo").to_s
     assert_equal '"foo \"bar\" baz"', ::KDL::V1::Value::String.new('foo "bar" baz').to_s
+    assert_equal '(ty)"foo"', ::KDL::V1::Value::String.new("foo", type: 'ty').to_s
   end
 
   def test_from
