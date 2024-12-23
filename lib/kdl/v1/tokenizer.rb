@@ -155,22 +155,6 @@ module KDL
               else return token(:IDENT, @buffer)
               end
             end
-          when :keyword
-            case c
-            when /[a-z\-]/
-              traverse(1)
-              @buffer += c
-            else
-              case @buffer
-              when '#true'  then return token(:TRUE, true)
-              when '#false' then return token(:FALSE, false)
-              when '#null'  then return token(:NULL, nil)
-              when '#inf'   then return token(:FLOAT, Float::INFINITY)
-              when '#-inf'  then return token(:FLOAT, -Float::INFINITY)
-              when '#nan'   then return token(:FLOAT, Float::NAN)
-              else raise_error "Unknown keyword #{@buffer.inspect}"
-              end
-            end
           when :string
             case c
             when '\\'

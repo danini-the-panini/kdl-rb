@@ -10,8 +10,8 @@ class KDL::V1::Parser
         EOF
         SLASHDASH
 rule
-  document  : nodes { KDL::Document.new(val[0]) }
-            | linespaces { KDL::Document.new([]) }
+  document  : nodes { @output_module::Document.new(val[0]) }
+            | linespaces { @output_module::Document.new([]) }
 
   nodes          : none                        { [] }
                  | linespaces node             { [val[1]] }
@@ -27,7 +27,7 @@ rule
                  | node_decl empty_childrens node_children                 { val[0].tap { |x| x.children = val[2] } }
                  | node_decl node_children empty_childrens                 { val[0].tap { |x| x.children = val[1] } }
                  | node_decl empty_childrens node_children empty_childrens { val[0].tap { |x| x.children = val[2] } }
-  node_decl      : identifier                           { KDL::Node.new(val[0]) }
+  node_decl      : identifier                           { @output_module::Node.new(val[0]) }
                  | node_decl ws_plus value              { val[0].tap { |x| x.arguments << val[2] } }
                  | node_decl ws_plus slashdash value    { val[0] }
                  | node_decl ws_plus property           { val[0].tap { |x| x.properties[val[2][0]] = val[2][1] } }
@@ -56,12 +56,12 @@ rule
   value : untyped_value
         | type untyped_value { val[1].as_type(val[0], @type_parsers.fetch(val[0], nil)) }
 
-  untyped_value : STRING     { KDL::Value::String.new(val[0].value) }
-                | RAWSTRING  { KDL::Value::String.new(val[0].value) }
-                | INTEGER    { KDL::Value::Int.new(val[0].value) }
-                | FLOAT      { KDL::Value::Float.new(val[0].value, format: val[0].meta[:format]) }
-                | boolean    { KDL::Value::Boolean.new(val[0]) }
-                | NULL       { KDL::Value::Null }
+  untyped_value : STRING     { @output_module::Value::String.new(val[0].value) }
+                | RAWSTRING  { @output_module::Value::String.new(val[0].value) }
+                | INTEGER    { @output_module::Value::Int.new(val[0].value) }
+                | FLOAT      { @output_module::Value::Float.new(val[0].value, format: val[0].meta[:format]) }
+                | boolean    { @output_module::Value::Boolean.new(val[0]) }
+                | NULL       { @output_module::Value::Null }
 
   boolean : TRUE  { true }
           | FALSE { false }
@@ -75,7 +75,8 @@ rule
 
 ---- inner
 
-  def parse(str, parse_types: true, type_parsers: {})
+  def parse(str, parse_types: true, type_parsers: {}, output_module: ::KDL::V1)
+    @output_module = output_module
     if parse_types
       @type_parsers = ::KDL::Types::MAPPING.merge(type_parsers)
     else

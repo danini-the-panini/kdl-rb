@@ -14,14 +14,14 @@ module KDL
     parse(input, **options)
   end
 
-  def self.parse(input, mode: :auto, **options)
+  def self.parse(input, mode: :auto, output: nil, **options)
     case mode
     when :auto
-      auto_parse(input, **options)
+      auto_parse(input, output:, **options)
     when :v2
-      Parser.new.parse(input, **options)
+      Parser.new(output_module: output_module(output || :v2), **options).parse(input)
     when :v1
-      V1::Parser.new.parse(input, **options)
+      V1::Parser.new.parse(input, output_module: output_module(output || :v1), **options)
     end
   end
 
@@ -29,10 +29,17 @@ module KDL
     parse(File.read(filespec, encoding: Encoding::UTF_8), **options)
   end
 
-  def self.auto_parse(input, **options)
+  def self.auto_parse(input, output: nil, **options)
     # TODO: read directive
-    parse(input, mode: :v2)
+    parse(input, mode: :v2, output: output || :v2, **options)
   rescue => e
-    parse(input, mode: :v1) rescue raise e
+    parse(input, mode: :v1, output: output || :v1, **options) rescue raise e
+  end
+
+  def self.output_module(mode)
+    case mode
+    when :v1 then KDL::V1
+    else KDL
+    end
   end
 end
