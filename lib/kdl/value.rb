@@ -51,8 +51,8 @@ module KDL
       value.public_send(name, *args, **kwargs, &block)
     end
 
-    def repond_to_missing?(name)
-      value.respond_to?(name)
+    def respond_to_missing?(name, include_all = false)
+      value.respond_to?(name, include_all)
     end
 
     class Int < Value

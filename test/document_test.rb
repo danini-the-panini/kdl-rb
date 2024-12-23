@@ -47,6 +47,12 @@ class DocumentTest < Minitest::Test
     assert_equal ["norf"], doc.args(:qux)
     assert_nil doc.args(:wat)
 
+    a = []; doc.each_arg("foo") { a << _1 }
+    assert_equal ["bar", "baz"], a
+
+    a = []; doc.each_arg(:wat) { a << _1 }
+    assert_equal [], a
+
     assert_raises { doc.arg(nil) }
   end
 
@@ -62,8 +68,31 @@ class DocumentTest < Minitest::Test
     assert_equal ["foo", "bar", "baz"], doc.dash_vals(0)
     assert_equal ["foo", "bar", "baz"], doc.dash_vals("node")
     assert_equal ["foo", "bar", "baz"], doc.dash_vals(:node)
+    assert_nil doc.dash_vals(:nope)
+
+    a = []; doc.each_dash_val("node") { a << _1 }
+    assert_equal ["foo", "bar", "baz"], a
+
+    a = []; doc.each_dash_val(:nope) { a << _1 }
+    assert_equal [], a
 
     assert_raises { doc.dash_vals(nil) }
+  end
+
+  def test_each
+    doc = KDL::Document.new([
+      KDL::Node.new("foo"),
+      KDL::Node.new("bar")
+    ])
+
+    a = []; doc.each { a << _1.name }
+    assert_equal ["foo", "bar"], a
+  end
+
+  def test_inspect
+    doc = KDL::Document.new([])
+
+    assert_kind_of String, doc.inspect
   end
 
 end

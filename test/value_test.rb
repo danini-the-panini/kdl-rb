@@ -49,4 +49,21 @@ class ValueTest < Minitest::Test
     refute_equal ::KDL::Value::NullImpl.new, 7
     refute_equal ::KDL::Value::String.new("lorem"), "ipsum"
   end
+
+  def test_inspect
+    assert_equal "1", ::KDL::Value::Int.new(1).inspect
+    assert_equal "1.5", ::KDL::Value::Float.new(1.5).inspect
+    assert_equal "true", ::KDL::Value::Boolean.new(true).inspect
+    assert_equal "false", ::KDL::Value::Boolean.new(false).inspect
+    assert_equal "nil", ::KDL::Value::Null.inspect
+    assert_equal '"foo"', ::KDL::Value::String.new("foo").inspect
+    assert_equal '"foo \"bar\" baz"', ::KDL::Value::String.new('foo "bar" baz').inspect
+  end
+
+  def test_method_missing
+    v = ::KDL::Value::String.new("foo")
+
+    assert v.respond_to?(:upcase)
+    assert_equal "FOO", v.upcase
+  end
 end
