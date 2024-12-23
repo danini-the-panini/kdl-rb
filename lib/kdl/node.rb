@@ -4,7 +4,12 @@ module KDL
 
     attr_accessor :name, :arguments, :properties, :children, :type
 
-    def initialize(name, arguments: [], properties: {}, children: [], type: nil)
+    def initialize(name, _args = [], _props = {}, _children = [],
+      arguments: _args,
+      properties: _props,
+      children: _children,
+      type: nil
+    )
       @name = name
       @arguments = arguments
       @properties = properties.transform_keys(&:to_s)

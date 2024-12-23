@@ -15,7 +15,6 @@ class SpecTest < Minitest::Test
       end
     else
       define_method "test_#{input_name}_does_not_parse" do
-        input = File.read(input_path, encoding: Encoding::UTF_8)
         assert_raises { ::KDL.load_file(input_path) }
       end
     end

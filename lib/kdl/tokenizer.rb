@@ -48,7 +48,7 @@ module KDL
 
     NEWLINES = ["\u000A", "\u0085", "\u000C", "\u2028", "\u2029"]
 
-    NON_IDENTIFIER_CHARS = Regexp.escape "#{SYMBOLS.keys.join('')}()[]/\\\"##{WHITESPACE.join}"
+    NON_IDENTIFIER_CHARS = Regexp.escape "#{SYMBOLS.keys.join}()[]/\\\"##{WHITESPACE.join}"
     IDENTIFIER_CHARS = /[^#{NON_IDENTIFIER_CHARS}\x0-\x19]/
     INITIAL_IDENTIFIER_CHARS = /[^#{NON_IDENTIFIER_CHARS}0-9\x0-\x19]/
 
@@ -61,9 +61,6 @@ module KDL
       *"\u2066".."\u2069",
       "\uFEFF"
     ]
-
-    ALLOWED_IN_TYPE = [:ident, :string, :rawstring, :multi_line_comment, :whitespace]
-    NOT_ALLOWED_AFTER_TYPE = [:single_line_comment]
 
     def initialize(str, start = 0)
       @str = debom(str)
@@ -355,7 +352,6 @@ module KDL
             end
           elsif NEWLINES.include?(c)
             raise_error "Unexpected newline in rawstring literal"
-
           end
 
           @buffer += c
@@ -493,13 +489,21 @@ module KDL
     end
 
     def context=(val)
-      if @type_context && !ALLOWED_IN_TYPE.include?(val)
+      if @type_context && !allowed_in_type?(val)
         raise_error "#{val} context not allowed in type declaration"
-      elsif @last_token && @last_token[0] == :RPAREN && NOT_ALLOWED_AFTER_TYPE.include?(val)
+      elsif @last_token && @last_token[0] == :RPAREN && !allowed_after_type?(val)
         raise_error 'Comments are not allowed after a type declaration'
       end
       @previous_context = @context
       @context = val
+    end
+
+    def allowed_in_type?(val)
+      %i[ident string rawstring multi_line_comment whitespace].include?(val)
+    end
+
+    def allowed_after_type?(val)
+      !%i[single_line_comment].include?(val)
     end
 
     def revert_context
@@ -589,14 +593,14 @@ module KDL
 
     def replace_esc(m)
       case m
-      when '\n' then "\n"
-      when '\r' then "\r"
-      when '\t' then "\t"
+      when '\n'   then "\n"
+      when '\r'   then "\r"
+      when '\t'   then "\t"
       when '\\\\' then "\\"
-      when '\"' then "\""
-      when '\b' then "\b"
-      when '\f' then "\f"
-      when '\s' then ' '
+      when '\"'   then "\""
+      when '\b'   then "\b"
+      when '\f'   then "\f"
+      when '\s'   then ' '
       when /\\[#{WHITESPACE.join}#{NEWLINES.join}]+/ then ''
       else raise_error "Unexpected escape #{m.inspect}"
       end

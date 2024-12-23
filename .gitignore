@@ -10,4 +10,5 @@
 Gemfile.lock
 
 lib/kdl/kdl.tab.rb
+lib/kdl/v1/kdl.tab.rb
 kdl.output
