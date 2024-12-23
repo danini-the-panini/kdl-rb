@@ -2,7 +2,7 @@ require 'test_helper'
 
 class TypesTest < Minitest::Test
   def test_types
-    doc = KDL.parse_document <<-KDL
+    doc = KDL.parse <<-KDL
     node (date-time)"2021-01-01T12:12:12" \\
          (date)"2021-01-01" \\
          (time)"22:23:12" \\
@@ -64,7 +64,7 @@ class TypesTest < Minitest::Test
         Bar.new(node, type: type) if node.is_a?(KDL::Node)
       }
     }
-    doc = KDL.parse_document <<-KDL, type_parsers: parsers
+    doc = KDL.parse <<-KDL, type_parsers: parsers
     (bar)barnode (foo)"foovalue"
     (foo)foonode (bar)"barvalue"
     KDL
@@ -76,7 +76,7 @@ class TypesTest < Minitest::Test
   end
 
   def test_parse_false
-    doc = KDL.parse_document <<-KDL, parse_types: false
+    doc = KDL.parse <<-KDL, parse_types: false
     node (date-time)"2021-01-01T12:12:12"
     KDL
 

@@ -27,13 +27,13 @@ Or install it yourself as:
 ```ruby
 require 'kdl'
 
-KDL.parse_document(a_string) #=> KDL::Document
+KDL.parse(a_string) #=> KDL::Document
 ```
 
 You can optionally provide your own type annotation handlers:
 
 ```ruby
-KDL.parse_document(a_string, type_parsers: {
+KDL.parse(a_string, type_parsers: {
   'foo' => -> (value, type) {
     Foo.new(value.value, type: type)
   }

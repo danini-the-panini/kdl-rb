@@ -10,14 +10,13 @@ class SpecTest < Minitest::Test
     expected_path = File.join(EXPECTED_DIR, "#{input_name}.kdl")
     if File.exist?(expected_path)
       define_method "test_#{input_name}_matches_expected_output" do
-        input = File.open(input_path, "r:UTF-8", &:read)
-        expected = File.open(expected_path, "r:UTF-8", &:read)
-        assert_equal expected, ::KDL.parse_document(input).to_s
+        expected = File.read(expected_path, encoding: Encoding::UTF_8)
+        assert_equal expected, ::KDL.load_file(input_path).to_s
       end
     else
       define_method "test_#{input_name}_does_not_parse" do
-        input = File.open(input_path, "r:UTF-8", &:read)
-        assert_raises { ::KDL.parse_document(input) }
+        input = File.read(input_path, encoding: Encoding::UTF_8)
+        assert_raises { ::KDL.load_file(input_path) }
       end
     end
   end

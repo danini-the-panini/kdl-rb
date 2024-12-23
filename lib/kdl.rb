@@ -8,7 +8,11 @@ require "kdl/types"
 require "kdl/kdl.tab"
 
 module KDL
-  def self.parse_document(input, options = {})
-    Parser.new.parse(input, options)
+  def self.parse(input, **options)
+    Parser.new.parse(input, **options)
+  end
+
+  def self.load_file(filespec, **options)
+    Parser.new.parse(File.read(filespec, encoding: Encoding::UTF_8), **options)
   end
 end

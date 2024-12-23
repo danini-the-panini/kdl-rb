@@ -76,9 +76,9 @@ rule
 
 ---- inner
 
-  def parse(str, options = {})
-    if options.fetch(:parse_types, true)
-      @type_parsers = ::KDL::Types::MAPPING.merge(options.fetch(:type_parsers, {}))
+  def parse(str, parse_types: true, type_parsers: {})
+    if parse_types
+      @type_parsers = ::KDL::Types::MAPPING.merge(type_parsers)
     else
       @type_parsers = {}
     end
