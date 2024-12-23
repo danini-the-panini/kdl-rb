@@ -2,7 +2,7 @@ require "test_helper"
 
 class ExamplesTest < Minitest::Test
   def example_path(name)
-    File.join(__dir__, "examples/#{name}.kdl")
+    File.join(__dir__, "kdl-org/examples/#{name}.kdl")
   end
 
   def test_ci
