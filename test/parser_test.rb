@@ -542,4 +542,18 @@ class ParserTest < Minitest::Test
     ])
     assert_equal nodes, doc
   end
+
+  def test_version_directive
+    refute_nil @parser.parse <<~KDL
+      /- kdl-version 2
+      node "foo"
+    KDL
+
+    assert_raises do
+      @parser.parse <<~KDL
+        /- kdl-version 1
+        node "foo"
+      KDL
+    end
+  end
 end

@@ -5,6 +5,7 @@ require "kdl/value"
 require "kdl/node"
 require "kdl/string_dumper"
 require "kdl/types"
+require "kdl/parser_common"
 require "kdl/kdl.tab"
 require "kdl/v1"
 

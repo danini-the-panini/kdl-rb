@@ -75,19 +75,15 @@ rule
 
 ---- inner
 
-  def parse(str, parse_types: true, type_parsers: {}, output_module: ::KDL::V1)
-    @output_module = output_module
-    if parse_types
-      @type_parsers = ::KDL::Types::MAPPING.merge(type_parsers)
-    else
-      @type_parsers = {}
-    end
-    @tokenizer = ::KDL::V1::Tokenizer.new(str)
-    do_parse
+  include KDL::ParserCommon
+
+  def parser_version
+    1
   end
 
-  private
-
-  def next_token
-    @tokenizer.next_token
+  def parse(str, **options)
+    init(**options)
+    @tokenizer = ::KDL::V1::Tokenizer.new(str)
+    check_version
+    do_parse
   end

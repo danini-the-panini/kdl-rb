@@ -77,6 +77,12 @@ module KDL
       @last_token = nil
     end
 
+    def version_directive
+      if m = @str.match(/\A\/-[#{WHITESPACE.join}]*kdl-version[#{WHITESPACE.join}]+(\d+)\s*[#{NEWLINES.join}]/)
+        m[1].to_i
+      end
+    end
+
     def done?
       @done
     end

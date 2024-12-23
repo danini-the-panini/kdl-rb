@@ -5,9 +5,6 @@ module KDL
       IDENTIFIER_CHARS = /[^#{NON_IDENTIFIER_CHARS}\x0-\x19]/
       INITIAL_IDENTIFIER_CHARS = /[^#{NON_IDENTIFIER_CHARS}0-9\x0-\x19]/
 
-      ALLOWED_IN_TYPE = [:ident, :string, :rawstring]
-      NOT_ALLOWED_AFTER_TYPE = [:single_line_comment, :multi_line_comment]
-
       def next_token
         @context = nil
         @previous_context = nil
