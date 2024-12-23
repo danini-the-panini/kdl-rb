@@ -84,10 +84,10 @@ class TypesTest < Minitest::Test
     assert_kind_of ::KDL::Value::String, doc.nodes.first.arguments.first
   end
 
-  class Foo < KDL::Value
+  class Foo < KDL::Value::Custom
   end
 
-  class Bar < KDL::Node
+  class Bar < KDL::Node::Custom
     def initialize(node, type: nil)
       super(node.name, arguments: node.arguments, properties: node.properties, children: node.children, type: type)
     end

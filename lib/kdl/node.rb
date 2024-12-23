@@ -1,5 +1,23 @@
 module KDL
   class Node
+    class Custom < Node
+      def self.call(node, type)
+        new(node.name, arguments: node.arguments, properties: node.properties, children: node.children, type:)
+      end
+
+      def version
+        nil
+      end
+
+      def to_v1
+        self
+      end
+
+      def to_v2
+        self
+      end
+    end
+
     include Enumerable
 
     attr_accessor :name, :arguments, :properties, :children, :type
@@ -109,12 +127,29 @@ module KDL
 
         return self.as_type(type) if result.nil?
 
-        unless result.is_a?(::KDL::Node)
-          raise ArgumentError, "expected parser to return an instance of ::KDL::Node, got `#{result.class}'"
+        unless result.is_a?(::KDL::Node::Custom)
+          raise ArgumentError, "expected parser to return an instance of ::KDL::Node::Custom, got `#{result.class}'"
         end
 
         result
       end
+    end
+
+    def version
+      2
+    end
+
+    def to_v2
+      self
+    end
+
+    def to_v1
+      ::KDL::V1::Node.new(name,
+        arguments: arguments.map(&:to_v1),
+        properties: properties.transform_values(&:to_v1),
+        children: children.map(&:to_v1),
+        type: type
+      )
     end
 
     private

@@ -1,6 +1,6 @@
 module KDL
   module Types
-    class Currency < Value
+    class Currency < Value::Custom
       # From https://en.wikipedia.org/wiki/ISO_4217#Active_codes
       CURRENCIES = {
         'AED' => { numeric_code: 784, minor_unit: 2, name: 'United Arab Emirates dirham' }.freeze,

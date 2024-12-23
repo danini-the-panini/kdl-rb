@@ -1,6 +1,6 @@
 module KDL
   module Types
-    class UUID < Value
+    class UUID < Value::Custom
       RGX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 
       def self.call(value, type = 'uuid')

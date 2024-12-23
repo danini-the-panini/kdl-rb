@@ -54,7 +54,7 @@ class ValueTest < Minitest::Test
     refute_equal ::KDL::Value::String.new("lorem"), "ipsum"
   end
 
-  class Something < KDL::Value
+  class Something < KDL::Value::Custom
   end
 
   def test_as_type
@@ -77,6 +77,44 @@ class ValueTest < Minitest::Test
     assert_equal '"foo"', ::KDL::Value::String.new("foo").inspect
     assert_equal '"foo \"bar\" baz"', ::KDL::Value::String.new('foo "bar" baz').inspect
     assert_equal '("ty")"foo"', ::KDL::Value::String.new("foo", type: 'ty').inspect
+  end
+
+  def test_version
+    assert_equal 2, ::KDL::Value::Int.new(1).version
+    assert_equal 2, ::KDL::Value::Float.new(1.5).version
+    assert_equal 2, ::KDL::Value::Boolean.new(true).version
+    assert_equal 2, ::KDL::Value::Boolean.new(false).version
+    assert_equal 2, ::KDL::Value::Null.version
+    assert_equal 2, ::KDL::Value::String.new("foo").version
+  end
+
+  def test_to_v1
+    [
+      ::KDL::Value::Int.new(1),
+      ::KDL::Value::Float.new(1.5),
+      ::KDL::Value::Boolean.new(true),
+      ::KDL::Value::Boolean.new(false),
+      ::KDL::Value::Null,
+      ::KDL::Value::String.new("foo")
+    ].each do |v|
+      v1 = v.to_v1
+      assert_equal 1, v1.version
+      assert_equal v, v1
+      assert_equal v1, v
+    end
+  end
+
+  def test_to_v2
+    [
+      ::KDL::Value::Int.new(1),
+      ::KDL::Value::Float.new(1.5),
+      ::KDL::Value::Boolean.new(true),
+      ::KDL::Value::Boolean.new(false),
+      ::KDL::Value::Null,
+      ::KDL::Value::String.new("foo")
+    ].each do |v|
+      assert_same v, v.to_v2
+    end
   end
 
   def test_method_missing

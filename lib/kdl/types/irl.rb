@@ -2,7 +2,7 @@ require_relative './irl/parser'
 
 module KDL
   module Types
-    class IRLReference < Value
+    class IRLReference < Value::Custom
       attr_reader :unicode_value,
                   :unicode_domain,
                   :unicode_path,

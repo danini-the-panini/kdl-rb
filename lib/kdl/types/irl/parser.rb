@@ -1,6 +1,6 @@
 module KDL
   module Types
-    class IRLReference < Value
+    class IRLReference < Value::Custom
       class Parser
         RGX = /^(?:(?:([a-z][a-z0-9+.\-]+)):\/\/([^@]+@)?([^\/?#]+)?)?(\/?[^?#]*)?(?:\?([^#]*))?(?:#(.*))?$/i.freeze
         PERCENT_RGX = /%[a-f0-9]{2}/i.freeze

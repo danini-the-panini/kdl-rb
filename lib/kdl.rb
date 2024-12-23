@@ -10,19 +10,24 @@ require "kdl/kdl.tab"
 require "kdl/v1"
 
 module KDL
+  class << self
+    attr_accessor :default_version
+    attr_accessor :default_output_version
+  end
+
   def self.parse_document(input, options = {})
     warn "[DEPRECATION] `KDL.parse_document' is deprecated. Please use `KDL.parse' instead."
     parse(input, **options)
   end
 
-  def self.parse(input, mode: :auto, output: nil, **options)
-    case mode
-    when :auto
-      auto_parse(input, output:, **options)
-    when :v2
-      Parser.new(output_module: output_module(output || :v2), **options).parse(input)
-    when :v1
-      V1::Parser.new.parse(input, output_module: output_module(output || :v1), **options)
+  def self.parse(input, version: default_version, output_version: default_output_version, **options)
+    case version
+    when 2
+      Parser.new(output_module: output_module(output_version || 2), **options).parse(input)
+    when 1
+      V1::Parser.new.parse(input, output_module: output_module(output_version || 1), **options)
+    else
+      auto_parse(input, output_version:, **options)
     end
   end
 
@@ -30,17 +35,19 @@ module KDL
     parse(File.read(filespec, encoding: Encoding::UTF_8), **options)
   end
 
-  def self.auto_parse(input, output: nil, **options)
-    # TODO: read directive
-    parse(input, mode: :v2, output: output || :v2, **options)
+  def self.auto_parse(input, output_version: default_output_version, **options)
+    parse(input, version: 2, output_version: output_version || 2, **options)
   rescue => e
-    parse(input, mode: :v1, output: output || :v1, **options) rescue raise e
+    parse(input, version: 1, output_version: output_version || 1, **options) rescue raise e
   end
 
-  def self.output_module(mode)
-    case mode
-    when :v1 then KDL::V1
-    else KDL
+  def self.output_module(version)
+    case version
+    when 1 then KDL::V1
+    when 2 then KDL
+    else
+      warn "Unknown output_version `#{version}', defaulting to v2"
+      KDL
     end
   end
 end

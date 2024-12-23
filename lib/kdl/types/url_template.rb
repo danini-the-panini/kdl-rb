@@ -2,7 +2,7 @@ require 'uri'
 
 module KDL
   module Types
-    class URLTemplate < Value
+    class URLTemplate < Value::Custom
       UNRESERVED = /[a-zA-Z0-9\-._~]/.freeze
       RESERVED = %r{[:/?#\[\]@!$&'()*+,;=]}.freeze
 

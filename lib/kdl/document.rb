@@ -59,5 +59,17 @@ module KDL
 
       nodes == other.nodes
     end
+
+    def version
+      2
+    end
+
+    def to_v2
+      self
+    end
+
+    def to_v1
+      KDL::V1::Document.new(nodes.map(&:to_v1))
+    end
   end
 end

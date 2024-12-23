@@ -146,7 +146,7 @@ class NodeTest < Minitest::Test
     assert_equal  0, a <=> a
   end
 
-  class Something < KDL::Node
+  class Something < KDL::Node::Custom
   end
 
   def test_as_type
@@ -158,6 +158,30 @@ class NodeTest < Minitest::Test
     assert_equal "bar", nil_parse.type
 
     assert_raises { node.as_type("bar", lambda { |n, type| Object.new }) }
+  end
+
+  def test_version
+    node = KDL::Node.new("foo")
+    assert_equal 2, node.version
+  end
+
+  def test_to_v1
+    node = KDL::Node.new("foo",
+      arguments: [v(true)],
+      properties: { bar: v("baz") },
+      children: [KDL::Node.new("qux")]
+    )
+
+    node = node.to_v1
+    assert_equal 1, node.version
+    assert_equal 1, node[0].version
+    assert_equal 1, node[:bar].version
+    assert_equal 1, node.child(0).version
+  end
+
+  def test_to_v2
+    node = KDL::Node.new("foo")
+    assert_same node, node.to_v2
   end
 
   private

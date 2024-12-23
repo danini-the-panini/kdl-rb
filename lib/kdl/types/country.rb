@@ -3,7 +3,7 @@ require 'kdl/types/country/iso3166_subdivisions'
 
 module KDL
   module Types
-    class Country < Value
+    class Country < Value::Custom
       attr_reader :name, :alpha2, :alpha3, :numeric_code
 
       def initialize(value, format: nil, type: 'country-3')
@@ -42,7 +42,7 @@ module KDL
     end
     MAPPING['country-2'] = Country2
 
-    class CountrySubdivision < Value
+    class CountrySubdivision < Value::Custom
       attr_reader :country, :name
 
       def initialize(value, type: 'country-subdivision', country:, name:, **kwargs)

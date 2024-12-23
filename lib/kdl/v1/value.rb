@@ -13,6 +13,18 @@ module KDL
 
           value == other
         end
+
+        def version
+          1
+        end
+
+        def to_v1
+          self
+        end
+
+        def to_v2
+          self.class.superclass.new(value, format:, type:)
+        end
       end
 
       include Methods
@@ -54,6 +66,10 @@ module KDL
 
         def stringify_value
           "null"
+        end
+
+        def to_v2
+          type ? ::KDL::Value::NullImpl.new(type:) : ::KDL::Value::Null
         end
       end
       Null = NullImpl.new

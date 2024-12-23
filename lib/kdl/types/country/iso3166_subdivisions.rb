@@ -1,6 +1,6 @@
 module KDL
   module Types
-    class CountrySubdivision < Value
+    class CountrySubdivision < Value::Custom
       # From: https://en.wikipedia.org/wiki/ISO_3166-2#Current_codes
       COUNTRY_SUBDIVISIONS = {
         "AD" => {

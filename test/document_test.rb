@@ -95,4 +95,34 @@ class DocumentTest < Minitest::Test
     assert_kind_of String, doc.inspect
   end
 
+  def test_version
+    assert_equal 2, KDL::Document.new([]).version
+  end
+
+  def test_to_v1
+    doc = KDL.parse <<~KDL, version: 2
+      foo lorem 1 #true #null {
+        bar """
+          baz
+            qux
+        """
+      }
+    KDL
+    assert_equal 2, doc.version
+
+    doc = doc.to_v1
+    assert_equal 1, doc.version
+
+    assert_equal <<~KDL, doc.to_s
+      foo "lorem" 1 true null {
+          bar "  baz\\n    qux"
+      }
+    KDL
+  end
+
+  def test_to_v2
+    doc = KDL::Document.new([])
+    assert_same doc, doc.to_v2
+  end
+
 end

@@ -28,21 +28,63 @@ Or install it yourself as:
 require 'kdl'
 
 KDL.parse(a_string) #=> KDL::Document
+KDL.load_file('path/to/file') #=> KDL::Document
 ```
 
 You can optionally provide your own type annotation handlers:
 
 ```ruby
+class Foo < KDL::Value::Custom
+end
+
 KDL.parse(a_string, type_parsers: {
-  'foo' => -> (value, type) {
-    Foo.new(value.value, type: type)
-  }
+  'foo' => Foo
 })
 ```
 
-The `foo` proc will be called with instances of Value or Node with the type annotation `(foo)`.
+The `foo` custom type will be called with instances of Value or Node with the type annotation `(foo)`.
 
-Parsers are expected to have a `call` method that takes the Value or Node, and the type annotation itself, as arguments, and is expected to return either an instance of Value or Node (depending on the input type) or `nil` to return the original value as is. Take a look at [the built in parsers](lib/kdl/types) as a reference.
+Custom types are expected to have a `call` method that takes the Value or Node, and the type annotation itself, as arguments, and is expected to return either an instance of `KDL::Value::Custom` or `KDL::Node::Custom` (depending on the input type) or `nil` to return the original value as is. Take a look at [the built in custom types](lib/kdl/types) as a reference.
+
+You can also disable type annotation parsing entirely (including the built in ones):
+
+```ruby
+KDL.parse(a_string, parse_types: false)
+```
+
+## KDL v1
+
+kdl-rb maintains backwards compatibility with the KDL v1 spec. By default, KDL will attempt to parse a file with the v1 parser if it fails to parse with v2. This behaviour can be changed by specifying the `version` option:
+
+```ruby
+KDL.parse(a_string, version: 2)
+```
+
+The resulting document will also serialize back to the same version it was parsed as. For example, if you parse a v2 document and call `to_s` on it, it will output a v2 document, and similarly with v1. This behaviour can be changed by specifying the `output_version` option:
+
+```ruby
+KDL.parse(a_string, output_version: 2)
+```
+
+This allows you to to convert document between versions:
+
+```ruby
+KDL.parse('foo "bar" true', version: 1, output_version: 2).to_s #=> 'foo bar #true'
+```
+
+You can also set the default version globally:
+
+```ruby
+KDL.default_version = 2
+KDL.default_output_version = 2
+```
+
+Version directives are also respected:
+
+```ruby
+KDL.parse("/- kdl-version 2\nfoo bar", version: 1)
+#=> Version mismatch, document specified v2, but this is a v1 parser (Racc::ParseError)
+```
 
 ## Development
 

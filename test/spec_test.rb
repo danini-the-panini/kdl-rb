@@ -11,11 +11,11 @@ class SpecTest < Minitest::Test
     if File.exist?(expected_path)
       define_method "test_#{input_name}_matches_expected_output" do
         expected = File.read(expected_path, encoding: Encoding::UTF_8)
-        assert_equal expected, ::KDL.load_file(input_path, mode: :v2).to_s
+        assert_equal expected, ::KDL.load_file(input_path, version: 2).to_s
       end
     else
       define_method "test_#{input_name}_does_not_parse" do
-        assert_raises { ::KDL.load_file(input_path, mode: :v2) }
+        assert_raises { ::KDL.load_file(input_path, version: 2) }
       end
     end
   end

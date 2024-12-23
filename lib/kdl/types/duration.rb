@@ -2,7 +2,7 @@ require 'kdl/types/duration/iso8601_parser'
 
 module KDL
   module Types
-    class Duration < Value
+    class Duration < Value::Custom
       attr_reader :years, :months, :weeks, :days, :hours, :minutes, :seconds
 
       def initialize(parts = {}, format: nil, type: 'duration')

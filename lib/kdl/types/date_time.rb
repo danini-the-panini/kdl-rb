@@ -2,7 +2,7 @@ require 'time'
 
 module KDL
   module Types
-    class DateTime < Value
+    class DateTime < Value::Custom
       def self.call(value, type = 'date-time')
         return nil unless value.is_a? ::KDL::Value::String
 
@@ -12,7 +12,7 @@ module KDL
     end
     MAPPING['date-time'] = DateTime
 
-    class Time < Value
+    class Time < Value::Custom
       # TODO: this is not a perfect ISO8601 time string
       REGEX = /^T?((?:2[0-3]|[01][0-9]):[0-5][0-9]:[0-5][0-9](?:\.[0-9]+)?(?:Z|[+-]\d\d:\d\d)?)$/
 
@@ -28,7 +28,7 @@ module KDL
     end
     MAPPING['time'] = Time
 
-    class Date < Value
+    class Date < Value::Custom
       def self.call(value, type = 'date')
         return nil unless value.is_a? ::KDL::Value::String
 

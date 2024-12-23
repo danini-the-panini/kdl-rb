@@ -1,6 +1,6 @@
 module KDL
   module Types
-    class Country < Value
+    class Country < Value::Custom
       # From: https://en.wikipedia.org/wiki/ISO_3166-1#Current_codes
       COUNTRIES3 = {
         'AFG' => { alpha3: 'AFG', alpha2: 'AF', numeric_code: 4, name: 'Afghanistan' }.freeze,

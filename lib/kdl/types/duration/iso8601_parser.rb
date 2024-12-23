@@ -25,7 +25,7 @@ require 'strscan'
 
 module KDL
   module Types
-    class Duration < Value
+    class Duration < Value::Custom
       # Parses a string formatted according to ISO 8601 Duration into the hash.
       #
       # See {ISO 8601}[https://en.wikipedia.org/wiki/ISO_8601#Durations] for more information.
