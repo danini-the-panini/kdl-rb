@@ -1,9 +1,9 @@
 module KDL
   module V1
     class Tokenizer < KDL::Tokenizer
-      NON_IDENTIFIER_CHARS = Regexp.escape "#{SYMBOLS.keys.join}()/\\<>[]\",#{WHITESPACE.join}"
-      IDENTIFIER_CHARS = /[^#{NON_IDENTIFIER_CHARS}\x0-\x19]/
-      INITIAL_IDENTIFIER_CHARS = /[^#{NON_IDENTIFIER_CHARS}0-9\x0-\x19]/
+      NON_IDENTIFIER_CHARS = Regexp.escape "#{SYMBOLS.keys.join}()/\\<>[]\",#{WHITESPACE.join}#{OTHER_NON_IDENTIFIER_CHARS.join}"
+      IDENTIFIER_CHARS = /[^#{NON_IDENTIFIER_CHARS}]/
+      INITIAL_IDENTIFIER_CHARS = /[^#{NON_IDENTIFIER_CHARS}0-9]/
 
       def next_token
         @context = nil

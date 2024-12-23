@@ -1,6 +1,6 @@
 require "test_helper"
 
-class ExamplesTest < Minitest::Test
+class KDL::V1::ExamplesTest < Minitest::Test
   def example_path(name)
     File.join(__dir__, "kdl-org/examples/#{name}.kdl")
   end
@@ -11,7 +11,7 @@ class ExamplesTest < Minitest::Test
       name "CI"
       on "push", "pull_request"
       env {
-        RUSTFLAGS("-Dwarnings")
+        RUSTFLAGS "-Dwarnings"
       }
       jobs {
         fmt_and_docs("Check fmt & build docs") {
@@ -24,8 +24,8 @@ class ExamplesTest < Minitest::Test
               components "rustfmt"
               override true
             }
-            step("rustfmt") { run "cargo", "fmt", "--all", "--", "--check" }
-            step("docs") { run "cargo", "doc", "--no-deps" }
+            step "rustfmt", run: "cargo fmt --all -- --check"
+            step "docs", run: "cargo doc --no-deps"
           }
         }
         build_and_test("Build & Test") {
@@ -45,9 +45,8 @@ class ExamplesTest < Minitest::Test
               components "clippy"
               override true
             }
-            step("Clippy") { run "cargo", "clippy", "--all", "--", "-D", "warnings" }
-            step("Run tests") { run "cargo", "test", "--all", "--verbose" }
-            step "Other Stuff", run: "echo foo\necho bar\necho baz"
+            step "Clippy", run: "cargo clippy --all -- -D warnings"
+            step "Run tests", run: "cargo test --all --verbose"
           }
         }
       }
@@ -61,7 +60,7 @@ class ExamplesTest < Minitest::Test
       package {
         name "kdl"
         version "0.0.0"
-        description "The kdl document language"
+        description "kat's document language"
         authors "Kat Marchán <kzm@zkat.tech>"
         _ "license-file", "LICENSE.md"
         edition "2018"

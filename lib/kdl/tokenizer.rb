@@ -48,9 +48,11 @@ module KDL
 
     NEWLINES = ["\u000A", "\u0085", "\u000C", "\u2028", "\u2029"]
 
-    NON_IDENTIFIER_CHARS = Regexp.escape "#{SYMBOLS.keys.join}()[]/\\\"##{WHITESPACE.join}"
-    IDENTIFIER_CHARS = /[^#{NON_IDENTIFIER_CHARS}\x0-\x19]/
-    INITIAL_IDENTIFIER_CHARS = /[^#{NON_IDENTIFIER_CHARS}0-9\x0-\x19]/
+    OTHER_NON_IDENTIFIER_CHARS = ("\x0".."\x20").to_a - WHITESPACE
+
+    NON_IDENTIFIER_CHARS = Regexp.escape "#{SYMBOLS.keys.join}()[]/\\\"##{WHITESPACE.join}#{OTHER_NON_IDENTIFIER_CHARS.join}"
+    IDENTIFIER_CHARS = /[^#{NON_IDENTIFIER_CHARS}]/
+    INITIAL_IDENTIFIER_CHARS = /[^#{NON_IDENTIFIER_CHARS}0-9]/
 
     FORBIDDEN = [
       *"\u0000".."\u0008",
