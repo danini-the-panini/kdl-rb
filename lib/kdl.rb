@@ -23,12 +23,12 @@ module KDL
     parse(input, **options)
   end
 
-  def self.parse(input, version: default_version, output_version: default_output_version, **options)
+  def self.parse(input, version: default_version, output_version: default_output_version, filename: nil, **options)
     case version
     when 2
-      Parser.new(output_module: output_module(output_version || 2), **options).parse(input)
+      Parser.new(output_module: output_module(output_version || 2), **options).parse(input, filename:)
     when 1
-      V1::Parser.new.parse(input, output_module: output_module(output_version || 1), **options)
+      V1::Parser.new.parse(input, output_module: output_module(output_version || 1), filename:, **options)
     when nil
       auto_parse(input, output_version:, **options)
     else
@@ -37,7 +37,9 @@ module KDL
   end
 
   def self.load_file(filespec, **options)
-    parse(File.read(filespec, encoding: Encoding::UTF_8), **options)
+    File.open(filespec, 'r:BOM|UTF-8') do |file|
+      parse(file.read, **options, filename: file.to_path)
+    end
   end
 
   def self.auto_parse(input, output_version: default_output_version, **options)
