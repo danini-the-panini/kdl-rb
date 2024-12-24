@@ -86,8 +86,8 @@ rule
     2
   end
 
-  def parse(str)
-    @tokenizer = ::KDL::Tokenizer.new(str)
+  def parse(str, filename: nil)
+    @tokenizer = ::KDL::Tokenizer.new(str, filename:)
     check_version
     do_parse
   end
