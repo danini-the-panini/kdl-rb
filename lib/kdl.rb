@@ -1,4 +1,5 @@
 require "kdl/version"
+require "kdl/error"
 require "kdl/tokenizer"
 require "kdl/document"
 require "kdl/value"
@@ -26,8 +27,10 @@ module KDL
       Parser.new(output_module: output_module(output_version || 2), **options).parse(input)
     when 1
       V1::Parser.new.parse(input, output_module: output_module(output_version || 1), **options)
-    else
+    when nil
       auto_parse(input, output_version:, **options)
+    else
+      raise UnsupportedVersionError.new("Unsupported version '#{version}'", version)
     end
   end
 
@@ -37,7 +40,9 @@ module KDL
 
   def self.auto_parse(input, output_version: default_output_version, **options)
     parse(input, version: 2, output_version: output_version || 2, **options)
-  rescue => e
+  rescue VersionMismatchError => e
+    parse(input, version: e.version, output_version: output_version || e.version, **options)
+  rescue Tokenizer::Error, Racc::ParseError => e
     parse(input, version: 1, output_version: output_version || 1, **options) rescue raise e
   end
 

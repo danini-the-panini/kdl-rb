@@ -2,7 +2,7 @@ require 'bigdecimal'
 
 module KDL
   class Tokenizer
-    class Error < StandardError
+    class Error < ::KDL::Error
       def initialize(message, line, column)
         super("#{message} (#{line}:#{column})")
       end
