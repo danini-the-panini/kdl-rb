@@ -1,4 +1,5 @@
 require "kdl/version"
+require "kdl/error"
 require "kdl/tokenizer"
 require "kdl/document"
 require "kdl/value"
@@ -37,7 +38,9 @@ module KDL
 
   def self.auto_parse(input, output_version: default_output_version, **options)
     parse(input, version: 2, output_version: output_version || 2, **options)
-  rescue => e
+  rescue VersionMismatchError => e
+    parse(input, version: e.version, output_version: output_version || e.version, **options)
+  rescue Tokenizer::Error, Racc::ParseError => e
     parse(input, version: 1, output_version: output_version || 1, **options) rescue raise e
   end
 
