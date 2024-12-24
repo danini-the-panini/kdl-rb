@@ -81,9 +81,9 @@ rule
     1
   end
 
-  def parse(str, **options)
+  def parse(str, filename: nil, **options)
     init(**options)
-    @tokenizer = ::KDL::V1::Tokenizer.new(str)
+    @tokenizer = ::KDL::V1::Tokenizer.new(str, filename:)
     check_version
     do_parse
   end

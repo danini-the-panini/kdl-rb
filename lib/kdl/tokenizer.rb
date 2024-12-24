@@ -3,8 +3,15 @@ require 'bigdecimal'
 module KDL
   class Tokenizer
     class Error < ::KDL::Error
-      def initialize(message, line, column)
-        super("#{message} (#{line}:#{column})")
+      attr_reader :filename, :line, :column
+
+      def initialize(message, filename = nil, line = nil, column = nil)
+        message += " (#{line}:#{column})" if line
+        message = "#{[filename, line, column].compact.join(':')}: #{message}" if filename
+        super(message)
+        @filename = filename
+        @line = line
+        @column = column
       end
     end
 
@@ -31,7 +38,7 @@ module KDL
       alias inspect to_s
     end
 
-    attr_reader :index
+    attr_reader :index, :filename
 
     SYMBOLS = {
       '{' => :LBRACE,
@@ -68,12 +75,13 @@ module KDL
       "\uFEFF"
     ]
 
-    def initialize(str, start = 0)
+    def initialize(str, start = 0, filename: nil)
       @str = debom(str)
-      @context = nil
-      @rawstring_hashes = nil
       @start = start
       @index = start
+      @filename = filename
+      @context = nil
+      @rawstring_hashes = nil
       @buffer = ""
       @done = false
       @previous_context = nil
@@ -197,7 +205,7 @@ module KDL
               traverse(1)
             end
           when '\\'
-            t = Tokenizer.new(@str, @index + 1)
+            t = Tokenizer.new(@str, @index + 1, filename:)
             la = t.next_token
             if la[0] == :NEWLINE || la[0] == :EOF || (la[0] == :WS && (lan = t.next_token[0]) == :NEWLINE || lan == :EOF)
               traverse_to(t.index)
@@ -429,7 +437,7 @@ module KDL
             @comment_nesting = 1
             traverse(2)
           elsif c == "\\"
-            t = Tokenizer.new(@str, @index + 1)
+            t = Tokenizer.new(@str, @index + 1, filename:)
             la = t.next_token
             if la[0] == :NEWLINE || la[0] == :EOF || (la[0] == :WS && (lan = t.next_token[0]) == :NEWLINE || lan == :EOF)
               traverse_to(t.index)
@@ -442,7 +450,7 @@ module KDL
             return token(:WS, @buffer)
           end
         when :equals
-          t = Tokenizer.new(@str, @index)
+          t = Tokenizer.new(@str, @index, filename:)
           la = t.next_token
           if la[0] == :WS
             @buffer += la[1].value
@@ -483,7 +491,7 @@ module KDL
     end
 
     def raise_error(message)
-      raise Error.new(message, @line, @column)
+      raise Error.new(message, @filename, @line, @column)
     end
 
     def context=(val)
