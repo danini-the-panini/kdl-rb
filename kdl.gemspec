@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
   spec.description   = %q{Ruby implementation of the KDL Document Language Spec}
   spec.homepage      = "https://kdl.dev"
   spec.license       = "MIT"
-  spec.required_ruby_version = Gem::Requirement.new(">= 2.5.0")
+  spec.required_ruby_version = Gem::Requirement.new(">= 3.1.0")
 
   spec.metadata["homepage_uri"] = spec.homepage
   spec.metadata["source_code_uri"] = "https://github.com/danini-the-panini/kdl-rb"
@@ -20,7 +20,7 @@ Gem::Specification.new do |spec|
   # The `git ls-files -z` loads the files in the RubyGem that have been added into git.
   spec.files         = Dir.chdir(File.expand_path('..', __FILE__)) do
     `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/}) }
-  end + ['lib/kdl/kdl.tab.rb']
+  end + ['lib/kdl/kdl.tab.rb', 'lib/kdl/v1/kdl.tab.rb']
   spec.bindir        = "exe"
   spec.require_paths = ["lib"]
 

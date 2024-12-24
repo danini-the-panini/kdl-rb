@@ -2,7 +2,7 @@ require_relative './email/parser'
 
 module KDL
   module Types
-    class Email < Value
+    class Email < Value::Custom
       attr_reader :local, :domain
 
       def initialize(value, local:, domain:, **kwargs)

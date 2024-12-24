@@ -1,8 +1,8 @@
 require "test_helper"
 
-class ParserTest < Minitest::Test
+class KDL::V1::ParserTest < Minitest::Test
   def setup
-    @parser = ::KDL::Parser.new
+    @parser = ::KDL::V1::Parser.new
   end
 
   def test_parse_empty_string
@@ -26,26 +26,20 @@ class ParserTest < Minitest::Test
   def test_node
     assert_equal ::KDL::Document.new([::KDL::Node.new('node')]),
                  @parser.parse('node;')
-    assert_equal ::KDL::Document.new([::KDL::Node.new('node', arguments: [::KDL::Value::Int.new(1)])]),
+    assert_equal ::KDL::Document.new([::KDL::Node.new('node', [::KDL::Value::Int.new(1)])]),
                  @parser.parse('node 1')
-    assert_equal ::KDL::Document.new([::KDL::Node.new('node', arguments: [::KDL::Value::Int.new(1),
-                                                                          ::KDL::Value::Int.new(2),
-                                                                          ::KDL::Value::String.new("3"),
-                                                                          ::KDL::Value::Boolean.new(true),
-                                                                          ::KDL::Value::Boolean.new(false),
-                                                                          ::KDL::Value::Null])]),
-                 @parser.parse('node 1 2 "3" #true #false #null')
+    assert_equal ::KDL::Document.new([::KDL::Node.new('node', [::KDL::Value::Int.new(1),
+                                                               ::KDL::Value::Int.new(2),
+                                                               ::KDL::Value::String.new("3"),
+                                                               ::KDL::Value::Boolean.new(true),
+                                                               ::KDL::Value::Boolean.new(false),
+                                                               ::KDL::Value::Null])]),
+                 @parser.parse('node 1 2 "3" true false null')
 
-    assert_equal ::KDL::Document.new([::KDL::Node.new('node', children: [::KDL::Node.new('node2')])]),
+    assert_equal ::KDL::Document.new([::KDL::Node.new('node', [], {}, [::KDL::Node.new('node2')])]),
                  @parser.parse("node {\n  node2\n}")
-    assert_equal ::KDL::Document.new([::KDL::Node.new('node', children: [::KDL::Node.new('node2')])]),
-                 @parser.parse("node {\n    node2    \n}")
-    assert_equal ::KDL::Document.new([::KDL::Node.new('node', children: [::KDL::Node.new('node2')])]),
+    assert_equal ::KDL::Document.new([::KDL::Node.new('node', [], {}, [::KDL::Node.new('node2')])]),
                  @parser.parse("node { node2; }")
-    assert_equal ::KDL::Document.new([::KDL::Node.new('node', children: [::KDL::Node.new('node2')])]),
-                 @parser.parse("node { node2 }")
-    assert_equal ::KDL::Document.new([::KDL::Node.new('node', children: [::KDL::Node.new('node2'), ::KDL::Node.new('node3')])]),
-                 @parser.parse("node { node2; node3 }")
   end
 
   def test_node_slashdash_comment
@@ -53,7 +47,7 @@ class ParserTest < Minitest::Test
     assert_equal ::KDL::Document.new([]), @parser.parse('/- node')
     assert_equal ::KDL::Document.new([]), @parser.parse("/- node\n")
     assert_equal ::KDL::Document.new([]), @parser.parse('/-node 1 2 3')
-    assert_equal ::KDL::Document.new([]), @parser.parse('/-node key=#false')
+    assert_equal ::KDL::Document.new([]), @parser.parse('/-node key=false')
     assert_equal ::KDL::Document.new([]), @parser.parse("/-node{\nnode\n}")
     assert_equal ::KDL::Document.new([]), @parser.parse("/-node 1 2 3 key=\"value\" \\\n{\nnode\n}")
   end
@@ -61,10 +55,10 @@ class ParserTest < Minitest::Test
   def test_arg_slashdash_comment
     assert_equal ::KDL::Document.new([::KDL::Node.new('node')]),
                  @parser.parse('node /-1')
-    assert_equal ::KDL::Document.new([::KDL::Node.new('node', arguments: [::KDL::Value::Int.new(2)])]),
+    assert_equal ::KDL::Document.new([::KDL::Node.new('node', [::KDL::Value::Int.new(2)])]),
                  @parser.parse('node /-1 2')
-    assert_equal ::KDL::Document.new([::KDL::Node.new('node', arguments: [::KDL::Value::Int.new(1),
-                                                                          ::KDL::Value::Int.new(3)])]),
+    assert_equal ::KDL::Document.new([::KDL::Node.new('node', [::KDL::Value::Int.new(1),
+                                                               ::KDL::Value::Int.new(3)])]),
                  @parser.parse('node 1 /- 2 3')
     assert_equal ::KDL::Document.new([::KDL::Node.new('node')]),
                  @parser.parse('node /--1')
@@ -79,7 +73,7 @@ class ParserTest < Minitest::Test
                  @parser.parse('node /-key=1')
     assert_equal ::KDL::Document.new([::KDL::Node.new('node')]),
                  @parser.parse('node /- key=1')
-    assert_equal ::KDL::Document.new([::KDL::Node.new('node', properties: { 'key' => ::KDL::Value::Int.new(1) })]),
+    assert_equal ::KDL::Document.new([::KDL::Node.new('node', [], { 'key' => ::KDL::Value::Int.new(1) })]),
                  @parser.parse('node key=1 /-key2=2')
   end
 
@@ -102,81 +96,72 @@ class ParserTest < Minitest::Test
   end
 
   def test_string
-    assert_equal ::KDL::Document.new([::KDL::Node.new('node', arguments: [::KDL::Value::String.new("")])]),
+    assert_equal ::KDL::Document.new([::KDL::Node.new('node', [::KDL::Value::String.new("")])]),
                  @parser.parse('node ""')
-    assert_equal ::KDL::Document.new([::KDL::Node.new('node', arguments: [::KDL::Value::String.new("hello")])]),
+    assert_equal ::KDL::Document.new([::KDL::Node.new('node', [::KDL::Value::String.new("hello")])]),
                  @parser.parse('node "hello"')
-    assert_equal ::KDL::Document.new([::KDL::Node.new('node', arguments: [::KDL::Value::String.new("hello\nworld")])]),
+    assert_equal ::KDL::Document.new([::KDL::Node.new('node', [::KDL::Value::String.new("hello\nworld")])]),
                  @parser.parse('node "hello\\nworld"')
-    assert_equal ::KDL::Document.new([::KDL::Node.new('node', arguments: [::KDL::Value::String.new("-flag")])]),
-                 @parser.parse('node -flag')
-    assert_equal ::KDL::Document.new([::KDL::Node.new('node', arguments: [::KDL::Value::String.new("--flagg")])]),
-                @parser.parse('node --flagg')
-    assert_equal ::KDL::Document.new([::KDL::Node.new('node', arguments: [::KDL::Value::String.new("\u{10FFF}")])]),
+    assert_equal ::KDL::Document.new([::KDL::Node.new('node', [::KDL::Value::String.new("\u{10FFF}")])]),
                  @parser.parse('node "\\u{10FFF}"')
-    assert_equal ::KDL::Document.new([::KDL::Node.new('node', arguments: [::KDL::Value::String.new("\"\\\u{08}\u{0C}\n\r\t")])]),
-                 @parser.parse('node "\"\\\\\b\f\n\r\t"')
-    assert_equal ::KDL::Document.new([::KDL::Node.new('node', arguments: [::KDL::Value::String.new("\u{10}")])]),
+    assert_equal ::KDL::Document.new([::KDL::Node.new('node', [::KDL::Value::String.new("\"\\/\u{08}\u{0C}\n\r\t")])]),
+                 @parser.parse('node "\"\\\\\/\b\f\n\r\t"')
+    assert_equal ::KDL::Document.new([::KDL::Node.new('node', [::KDL::Value::String.new("\u{10}")])]),
                  @parser.parse('node "\u{10}"')
     assert_raises { @parser.parse('node "\i"') }
     assert_raises { @parser.parse('node "\u{c0ffee}"') }
     assert_raises { @parser.parse('node "oops') }
   end
 
-  def test_unindented_multiline_strings
-    assert_equal ::KDL::Document.new([::KDL::Node.new('node', arguments: [::KDL::Value::String.new("foo\nbar\n  baz\nqux")])]),
-      @parser.parse(%Q(node """\n  foo\n  bar\n    baz\n  qux\n  """))
-    assert_equal ::KDL::Document.new([::KDL::Node.new('node', arguments: [::KDL::Value::String.new("foo\nbar\n  baz\nqux")])]),
-      @parser.parse(%Q(node #"""\n  foo\n  bar\n    baz\n  qux\n  """#))
-    assert_raises { @parser.parse(%Q(node """\n    foo\n  bar\n    baz\n    """))}
-    assert_raises { @parser.parse(%Q(node #"""\n    foo\n  bar\n    baz\n    """#))}
-  end
-
   def test_float
-    assert_equal ::KDL::Document.new([::KDL::Node.new('node', arguments: [::KDL::Value::Float.new(1.0)])]),
+    assert_equal ::KDL::Document.new([::KDL::Node.new('node', [::KDL::Value::Float.new(1.0)])]),
                  @parser.parse('node 1.0')
-    assert_equal ::KDL::Document.new([::KDL::Node.new('node', arguments: [::KDL::Value::Float.new(0.0)])]),
+    assert_equal ::KDL::Document.new([::KDL::Node.new('node', [::KDL::Value::Float.new(0.0)])]),
                  @parser.parse('node 0.0')
-    assert_equal ::KDL::Document.new([::KDL::Node.new('node', arguments: [::KDL::Value::Float.new(-1.0)])]),
+    assert_equal ::KDL::Document.new([::KDL::Node.new('node', [::KDL::Value::Float.new(-1.0)])]),
                  @parser.parse('node -1.0')
-    assert_equal ::KDL::Document.new([::KDL::Node.new('node', arguments: [::KDL::Value::Float.new(1.0)])]),
+    assert_equal ::KDL::Document.new([::KDL::Node.new('node', [::KDL::Value::Float.new(1.0)])]),
                  @parser.parse('node +1.0')
-    assert_equal ::KDL::Document.new([::KDL::Node.new('node', arguments: [::KDL::Value::Float.new(1.0e10)])]),
+    assert_equal ::KDL::Document.new([::KDL::Node.new('node', [::KDL::Value::Float.new(1.0e10)])]),
                  @parser.parse('node 1.0e10')
-    assert_equal ::KDL::Document.new([::KDL::Node.new('node', arguments: [::KDL::Value::Float.new(1.0e-10)])]),
+    assert_equal ::KDL::Document.new([::KDL::Node.new('node', [::KDL::Value::Float.new(1.0e-10)])]),
                  @parser.parse('node 1.0e-10')
-    assert_equal ::KDL::Document.new([::KDL::Node.new('node', arguments: [::KDL::Value::Float.new(123456789.0)])]),
+    assert_equal ::KDL::Document.new([::KDL::Node.new('node', [::KDL::Value::Float.new(123456789.0)])]),
                  @parser.parse('node 123_456_789.0')
-    assert_equal ::KDL::Document.new([::KDL::Node.new('node', arguments: [::KDL::Value::Float.new(123456789.0)])]),
+    assert_equal ::KDL::Document.new([::KDL::Node.new('node', [::KDL::Value::Float.new(123456789.0)])]),
                  @parser.parse('node 123_456_789.0')
+    assert_raises { @parser.parse('node ?1.0') }
+    assert_raises { @parser.parse('node _1.0') }
     assert_raises { @parser.parse('node 1._0') }
     assert_raises { @parser.parse('node 1.') }
-    assert_raises { @parser.parse('node 1.0v2') }
-    assert_raises { @parser.parse('node -1em') }
     assert_raises { @parser.parse('node .0') }
   end
 
   def test_integer
-    assert_equal ::KDL::Document.new([::KDL::Node.new('node', arguments: [::KDL::Value::Int.new(0)])]),
+    assert_equal ::KDL::Document.new([::KDL::Node.new('node', [::KDL::Value::Int.new(0)])]),
                  @parser.parse('node 0')
-    assert_equal ::KDL::Document.new([::KDL::Node.new('node', arguments: [::KDL::Value::Int.new(123456789)])]),
+    assert_equal ::KDL::Document.new([::KDL::Node.new('node', [::KDL::Value::Int.new(123456789)])]),
                  @parser.parse('node 0123456789')
-    assert_equal ::KDL::Document.new([::KDL::Node.new('node', arguments: [::KDL::Value::Int.new(123456789)])]),
+    assert_equal ::KDL::Document.new([::KDL::Node.new('node', [::KDL::Value::Int.new(123456789)])]),
                  @parser.parse('node 0123_456_789')
-    assert_equal ::KDL::Document.new([::KDL::Node.new('node', arguments: [::KDL::Value::Int.new(123456789)])]),
+    assert_equal ::KDL::Document.new([::KDL::Node.new('node', [::KDL::Value::Int.new(123456789)])]),
                  @parser.parse('node 0123_456_789_')
-    assert_equal ::KDL::Document.new([::KDL::Node.new('node', arguments: [::KDL::Value::Int.new(123456789)])]),
+    assert_equal ::KDL::Document.new([::KDL::Node.new('node', [::KDL::Value::Int.new(123456789)])]),
                  @parser.parse('node +0123456789')
-    assert_equal ::KDL::Document.new([::KDL::Node.new('node', arguments: [::KDL::Value::Int.new(-123456789)])]),
+    assert_equal ::KDL::Document.new([::KDL::Node.new('node', [::KDL::Value::Int.new(-123456789)])]),
                  @parser.parse('node -0123456789')
+    assert_raises { @parser.parse('node ?0123456789') }
+    assert_raises { @parser.parse('node _0123456789') }
+    assert_raises { @parser.parse('node a') }
+    assert_raises { @parser.parse('node --') }
   end
 
   def test_hexadecimal
-    assert_equal ::KDL::Document.new([::KDL::Node.new('node', arguments: [::KDL::Value::Int.new(0x0123456789abcdef)])]),
+    assert_equal ::KDL::Document.new([::KDL::Node.new('node', [::KDL::Value::Int.new(0x0123456789abcdef)])]),
                  @parser.parse('node 0x0123456789abcdef')
-    assert_equal ::KDL::Document.new([::KDL::Node.new('node', arguments: [::KDL::Value::Int.new(0x0123456789abcdef)])]),
+    assert_equal ::KDL::Document.new([::KDL::Node.new('node', [::KDL::Value::Int.new(0x0123456789abcdef)])]),
                  @parser.parse('node 0x01234567_89abcdef')
-    assert_equal ::KDL::Document.new([::KDL::Node.new('node', arguments: [::KDL::Value::Int.new(0x0123456789abcdef)])]),
+    assert_equal ::KDL::Document.new([::KDL::Node.new('node', [::KDL::Value::Int.new(0x0123456789abcdef)])]),
                  @parser.parse('node 0x01234567_89abcdef_')
     assert_raises { @parser.parse('node 0x_123') }
     assert_raises { @parser.parse('node 0xg') }
@@ -184,11 +169,11 @@ class ParserTest < Minitest::Test
   end
 
   def test_octal
-    assert_equal ::KDL::Document.new([::KDL::Node.new('node', arguments: [::KDL::Value::Int.new(0o01234567)])]),
+    assert_equal ::KDL::Document.new([::KDL::Node.new('node', [::KDL::Value::Int.new(0o01234567)])]),
                  @parser.parse('node 0o01234567')
-    assert_equal ::KDL::Document.new([::KDL::Node.new('node', arguments: [::KDL::Value::Int.new(0o01234567)])]),
+    assert_equal ::KDL::Document.new([::KDL::Node.new('node', [::KDL::Value::Int.new(0o01234567)])]),
                  @parser.parse('node 0o0123_4567')
-    assert_equal ::KDL::Document.new([::KDL::Node.new('node', arguments: [::KDL::Value::Int.new(0o01234567)])]),
+    assert_equal ::KDL::Document.new([::KDL::Node.new('node', [::KDL::Value::Int.new(0o01234567)])]),
                  @parser.parse('node 0o01234567_')
     assert_raises { @parser.parse('node 0o_123') }
     assert_raises { @parser.parse('node 0o8') }
@@ -196,13 +181,13 @@ class ParserTest < Minitest::Test
   end
 
   def test_binary
-    assert_equal ::KDL::Document.new([::KDL::Node.new('node', arguments: [::KDL::Value::Int.new(0b0101)])]),
+    assert_equal ::KDL::Document.new([::KDL::Node.new('node', [::KDL::Value::Int.new(0b0101)])]),
                  @parser.parse('node 0b0101')
-    assert_equal ::KDL::Document.new([::KDL::Node.new('node', arguments: [::KDL::Value::Int.new(0b0110)])]),
+    assert_equal ::KDL::Document.new([::KDL::Node.new('node', [::KDL::Value::Int.new(0b0110)])]),
                  @parser.parse('node 0b01_10')
-    assert_equal ::KDL::Document.new([::KDL::Node.new('node', arguments: [::KDL::Value::Int.new(0b0110)])]),
+    assert_equal ::KDL::Document.new([::KDL::Node.new('node', [::KDL::Value::Int.new(0b0110)])]),
                  @parser.parse('node 0b01___10')
-    assert_equal ::KDL::Document.new([::KDL::Node.new('node', arguments: [::KDL::Value::Int.new(0b0110)])]),
+    assert_equal ::KDL::Document.new([::KDL::Node.new('node', [::KDL::Value::Int.new(0b0110)])]),
                  @parser.parse('node 0b0110_')
     assert_raises { @parser.parse('node 0b_0110') }
     assert_raises { @parser.parse('node 0b20') }
@@ -210,40 +195,32 @@ class ParserTest < Minitest::Test
   end
 
   def test_raw_string
-    assert_equal ::KDL::Document.new([::KDL::Node.new('node', arguments: [::KDL::Value::String.new('foo')])]),
-                 @parser.parse('node #"foo"#')
-    assert_equal ::KDL::Document.new([::KDL::Node.new('node', arguments: [::KDL::Value::String.new('foo\nbar')])]),
-                 @parser.parse('node #"foo\nbar"#')
-    assert_equal ::KDL::Document.new([::KDL::Node.new('node', arguments: [::KDL::Value::String.new('foo')])]),
-                 @parser.parse('node #"foo"#')
-    assert_equal ::KDL::Document.new([::KDL::Node.new('node', arguments: [::KDL::Value::String.new('foo')])]),
-                 @parser.parse('node ##"foo"##')
-    assert_equal ::KDL::Document.new([::KDL::Node.new('node', arguments: [::KDL::Value::String.new('\nfoo\r')])]),
-                 @parser.parse('node #"\nfoo\r"#')
-    assert_raises { @parser.parse('node ##"foo"#') }
+    assert_equal ::KDL::Document.new([::KDL::Node.new('node', [::KDL::Value::String.new('foo')])]),
+                 @parser.parse('node r"foo"')
+    assert_equal ::KDL::Document.new([::KDL::Node.new('node', [::KDL::Value::String.new('foo\nbar')])]),
+                 @parser.parse('node r"foo\nbar"')
+    assert_equal ::KDL::Document.new([::KDL::Node.new('node', [::KDL::Value::String.new('foo')])]),
+                 @parser.parse('node r#"foo"#')
+    assert_equal ::KDL::Document.new([::KDL::Node.new('node', [::KDL::Value::String.new('foo')])]),
+                 @parser.parse('node r##"foo"##')
+    assert_equal ::KDL::Document.new([::KDL::Node.new('node', [::KDL::Value::String.new('\nfoo\r')])]),
+                 @parser.parse('node r"\nfoo\r"')
+    assert_raises { @parser.parse('node r##"foo"#') }
   end
 
   def test_boolean
-    assert_equal ::KDL::Document.new([::KDL::Node.new('node', arguments: [::KDL::Value::Boolean.new(true)])]),
-                 @parser.parse('node #true')
-    assert_equal ::KDL::Document.new([::KDL::Node.new('node', arguments: [::KDL::Value::Boolean.new(false)])]),
-                 @parser.parse('node #false')
-    assert_raises { @parser.parse('node true')}
-    assert_raises { @parser.parse('node false')}
-  end
-
-  def test_null
-    assert_equal ::KDL::Document.new([::KDL::Node.new('node', arguments: [::KDL::Value::Null])]),
-                 @parser.parse('node #null')
-    assert_raises { @parser.parse('node null')}
+    assert_equal ::KDL::Document.new([::KDL::Node.new('node', [::KDL::Value::Boolean.new(true)])]),
+                 @parser.parse('node true')
+    assert_equal ::KDL::Document.new([::KDL::Node.new('node', [::KDL::Value::Boolean.new(false)])]),
+                 @parser.parse('node false')
   end
 
   def test_node_space
-    assert_equal ::KDL::Document.new([::KDL::Node.new('node', arguments: [::KDL::Value::Int.new(1)])]),
+    assert_equal ::KDL::Document.new([::KDL::Node.new('node', [::KDL::Value::Int.new(1)])]),
                  @parser.parse('node 1')
-    assert_equal ::KDL::Document.new([::KDL::Node.new('node', arguments: [::KDL::Value::Int.new(1)])]),
+    assert_equal ::KDL::Document.new([::KDL::Node.new('node', [::KDL::Value::Int.new(1)])]),
                  @parser.parse("node\t1")
-    assert_equal ::KDL::Document.new([::KDL::Node.new('node', arguments: [::KDL::Value::Int.new(1)])]),
+    assert_equal ::KDL::Document.new([::KDL::Node.new('node', [::KDL::Value::Int.new(1)])]),
                  @parser.parse("node\t \\ // hello\n 1")
   end
 
@@ -267,14 +244,11 @@ class ParserTest < Minitest::Test
   end
 
   def test_escline
-    assert_equal ::KDL::Document.new([::KDL::Node.new('node', arguments: [::KDL::Value.from(1)])]), @parser.parse("node\\\n  1")
-    assert_equal ::KDL::Document.new([::KDL::Node.new('node', arguments: [::KDL::Value.from(1)])]), @parser.parse("node\\ // comment\n  1")
-    assert_equal ::KDL::Document.new([::KDL::Node.new('node')]), @parser.parse("node\\\n")
-    assert_equal ::KDL::Document.new([::KDL::Node.new('node')]), @parser.parse("node\\ \n")
-    assert_equal ::KDL::Document.new([::KDL::Node.new('node')]), @parser.parse("node\\\n ")
-    assert_raises { @parser.parse("node \\foo") }
+    assert_equal ::KDL::Document.new([::KDL::Node.new('node', [::KDL::Value.from(1)])]), @parser.parse("node\\\n  1")
+    assert_raises { @parser.parse("node\\\nnode2") }
     assert_raises { @parser.parse("node\\\\\nnode2") }
     assert_raises { @parser.parse("node \\\\\nnode2") }
+    assert_raises { @parser.parse("node  \\ //comment\n  node2") }
   end
 
   def test_whitespace
@@ -316,9 +290,8 @@ class ParserTest < Minitest::Test
 
   def test_properties
     doc = @parser.parse <<~KDL
-      author "Alex Monad" email="alex@example.com" active= #true
-      foo bar =#true "baz" quux =\\
-        #false 1 2 3
+      author "Alex Monad" email="alex@example.com" active=true
+      foo bar=true "baz" quux=false 1 2 3
     KDL
     nodes = nodes! {
       author "Alex Monad", email: "alex@example.com", active: true
@@ -355,19 +328,11 @@ class ParserTest < Minitest::Test
     assert_equal nodes, doc
   end
 
-  def test_optional_child_semicolon
-    doc = @parser.parse('node {foo;bar;baz}')
-    nodes = nodes! {
-      node { foo; bar; baz }
-    }
-    assert_equal nodes, doc
-  end
-
   def test_raw_strings
     doc = @parser.parse <<~KDL
       node "this\\nhas\\tescapes"
-      other #"C:\\Users\\zkat\\"#
-      other-raw #"hello"world"#
+      other r"C:\\Users\\zkat\\"
+      other-raw r#"hello"world"#
     KDL
     nodes = nodes! {
       node "this\nhas\tescapes"
@@ -379,39 +344,14 @@ class ParserTest < Minitest::Test
 
   def test_multiline_strings
     doc = @parser.parse <<~KDL
-      string """
-      my
+      string "my
       multiline
-      value
-      """
+      value"
     KDL
     nodes = nodes! {
       string "my\nmultiline\nvalue"
     }
     assert_equal nodes, doc
-
-    assert_raises do
-      @parser.parse <<~KDL
-        node """foo"""
-      KDL
-    end
-    assert_raises do
-      @parser.parse <<~KDL
-        node #"""foo"bar"""#
-      KDL
-    end
-    assert_raises do
-      @parser.parse <<~KDL
-        node """
-          oops
-      KDL
-    end
-    assert_raises do
-      @parser.parse <<~KDL
-        node #"""
-          oops
-      KDL
-    end
   end
 
   def test_numbers
@@ -440,7 +380,7 @@ class ParserTest < Minitest::Test
       C style multiline
       */
 
-      tag /*foo=#true*/ bar=#false
+      tag /*foo=true*/ bar=false
 
       /*/*
       hello
@@ -460,7 +400,7 @@ class ParserTest < Minitest::Test
         c
       }
 
-      mynode /- "commented" "not commented" /-key="value" /-{
+      mynode /-"commented" "not commented" /-key="value" /-{
         a
         b
       }
@@ -494,21 +434,21 @@ class ParserTest < Minitest::Test
       ノード お名前="☜(ﾟヮﾟ☜)"
     KDL
     nodes = ::KDL::Document.new([
-      ::KDL::Node.new('smile', arguments: [::KDL::Value::String.new('😁')]),
-      ::KDL::Node.new('ノード', properties: { 'お名前' => ::KDL::Value::String.new('☜(ﾟヮﾟ☜)') })
+      ::KDL::Node.new('smile', [::KDL::Value::String.new('😁')]),
+      ::KDL::Node.new('ノード', [], { 'お名前' => ::KDL::Value::String.new('☜(ﾟヮﾟ☜)') })
     ])
     assert_equal nodes, doc
   end
 
   def test_node_names
     doc = @parser.parse <<~KDL
-      "!@$@$%Q$%~@!40" "1.2.3" "!!!!!"=#true
-      foo123~!@$%^&*.:'|?+ "weeee"
+      "!@#$@$%Q#$%~@!40" "1.2.3" "!!!!!"=true
+      foo123~!@#$%^&*.:'|?+ "weeee"
       - 1
     KDL
     nodes = nodes! {
-      _ "!@$@$%Q$%~@!40", "1.2.3", "!!!!!": true
-      _ "foo123~!@$%^&*.:'|?+", "weeee"
+      _ "!@#$@$%Q#$%~@!40", "1.2.3", "!!!!!": true
+      _ "foo123~!@#$%^&*.:'|?+", "weeee"
       _ "-", 1
     }
     assert_equal nodes, doc
@@ -541,7 +481,7 @@ class ParserTest < Minitest::Test
       node (foo)"bar"
     KDL
     nodes = ::KDL::Document.new([
-      ::KDL::Node.new('node', arguments: [::KDL::Value::String.new('bar', type: 'foo')]),
+      ::KDL::Node.new('node', [::KDL::Value::String.new('bar', type: 'foo')]),
     ])
     assert_equal nodes, doc
   end
@@ -551,7 +491,7 @@ class ParserTest < Minitest::Test
       node baz=(foo)"bar"
     KDL
     nodes = ::KDL::Document.new([
-      ::KDL::Node.new('node', properties: { 'baz' => ::KDL::Value::String.new('bar', type: 'foo') }),
+      ::KDL::Node.new('node', [], { 'baz' => ::KDL::Value::String.new('bar', type: 'foo') }),
     ])
     assert_equal nodes, doc
   end
@@ -563,7 +503,7 @@ class ParserTest < Minitest::Test
       }
     KDL
     nodes = ::KDL::Document.new([
-      ::KDL::Node.new('node', children: [
+      ::KDL::Node.new('node', [], {}, [
         ::KDL::Node.new('bar', type: 'foo')
       ]),
     ])
@@ -572,13 +512,13 @@ class ParserTest < Minitest::Test
 
   def test_version_directive
     refute_nil @parser.parse <<~KDL
-      /- kdl-version 2
+      /- kdl-version 1
       node "foo"
     KDL
 
     assert_raises do
       @parser.parse <<~KDL
-        /- kdl-version 1
+        /- kdl-version 2
         node "foo"
       KDL
     end

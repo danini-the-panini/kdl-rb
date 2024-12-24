@@ -2,7 +2,7 @@ require_relative '../hostname/validator'
 
 module KDL
   module Types
-    class Email < Value
+    class Email < Value::Custom
       class Parser
         def initialize(string, idn: false)
           @string = string

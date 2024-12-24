@@ -1,6 +1,6 @@
 module KDL
   module Types
-    class Decimal < Value
+    class Decimal < Value::Custom
       def self.call(value, type = 'decimal')
         return nil unless value.is_a? ::KDL::Value::String
 

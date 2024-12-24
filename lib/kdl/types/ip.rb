@@ -1,6 +1,6 @@
 module KDL
   module Types
-    class IP < Value
+    class IP < Value::Custom
       def self.call(value, type = ip_type)
         return nil unless value.is_a? ::KDL::Value::String
 

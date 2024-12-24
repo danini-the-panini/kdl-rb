@@ -1,4 +1,4 @@
-class KDL::Parser
+class KDL::V1::Parser
   options no_result_var
   token IDENT STRING RAWSTRING
         INTEGER FLOAT TRUE FALSE NULL
@@ -45,7 +45,7 @@ rule
   semicolon_term: SEMICOLON | SEMICOLON linespaces
   slashdash: SLASHDASH | slashdash ws_plus | slashdash linespaces
 
-  type : LPAREN ws_star identifier ws_star RPAREN ws_star { val[2] }
+  type : LPAREN ws_star identifier ws_star RPAREN { val[2] }
 
   identifier : IDENT     { val[0].value }
              | STRING    { val[0].value }
@@ -56,8 +56,7 @@ rule
   value : untyped_value
         | type untyped_value { val[1].as_type(val[0], @type_parsers.fetch(val[0], nil)) }
 
-  untyped_value : IDENT      { @output_module::Value::String.new(val[0].value) }
-                | STRING     { @output_module::Value::String.new(val[0].value) }
+  untyped_value : STRING     { @output_module::Value::String.new(val[0].value) }
                 | RAWSTRING  { @output_module::Value::String.new(val[0].value) }
                 | INTEGER    { @output_module::Value::Int.new(val[0].value) }
                 | FLOAT      { @output_module::Value::Float.new(val[0].value, format: val[0].meta[:format]) }
@@ -78,16 +77,13 @@ rule
 
   include KDL::ParserCommon
 
-  def initialize(**options)
-    init(**options)
-  end
-
   def parser_version
-    2
+    1
   end
 
-  def parse(str)
-    @tokenizer = ::KDL::Tokenizer.new(str)
+  def parse(str, **options)
+    init(**options)
+    @tokenizer = ::KDL::V1::Tokenizer.new(str)
     check_version
     do_parse
   end

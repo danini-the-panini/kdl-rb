@@ -2,7 +2,7 @@ require 'simpleidn'
 
 module KDL
   module Types
-    class Hostname < Value
+    class Hostname < Value::Custom
       class Validator
         PART_RGX = /^[a-z0-9_][a-z0-9_\-]{0,62}$/i
 

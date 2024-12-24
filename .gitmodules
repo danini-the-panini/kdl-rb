@@ -1,3 +1,7 @@
 [submodule "test/kdl-org"]
 	path = test/kdl-org
 	url = git@github.com:kdl-org/kdl
+[submodule "test/v1/kdl-org"]
+	path = test/v1/kdl-org
+	url = git@github.com:kdl-org/kdl
+	branch = release/v1

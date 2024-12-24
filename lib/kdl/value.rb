@@ -15,18 +15,30 @@ module KDL
         result = parser.call(self, type)
         return self.as_type(type) if result.nil?
 
-        unless result.is_a?(::KDL::Value)
-          raise ArgumentError, "expected parser to return an instance of ::KDL::Value, got `#{result.class}'"
+        unless result.is_a?(::KDL::Value::Custom)
+          raise ArgumentError, "expected parser to return an instance of ::KDL::Value::Custom, got `#{result.class}'"
         end
 
         result
       end
     end
 
+    def ==(other)
+      return self == other.value if other.is_a?(self.class)
+
+      value == other
+    end
+
     def to_s
       return stringify_value unless type
 
-      "(#{StringDumper.stringify_identifier type})#{stringify_value}"
+      "(#{StringDumper.call type})#{stringify_value}"
+    end
+
+    def inspect
+      return value.inspect unless type
+
+      "(#{type.inspect})#{value.inspect}"
     end
 
     def stringify_value
@@ -35,18 +47,40 @@ module KDL
       value.to_s
     end
 
+    def version
+      2
+    end
+
+    def to_v2
+      self
+    end
+
+    def method_missing(name, *args, **kwargs, &block)
+      value.public_send(name, *args, **kwargs, &block)
+    end
+
+    def respond_to_missing?(name, include_all = false)
+      value.respond_to?(name, include_all)
+    end
+
     class Int < Value
-      def ==(other)
-        other.is_a?(Int) && value == other.value
+      def to_v1
+        V1::Value::Int.new(value, format:, type:)
       end
     end
 
     class Float < Value
       def ==(other)
-        other.is_a?(Float) && value == other.value
+        return self == other.value if other.is_a?(Float)
+        return other.nan? if value.nan?
+
+        value == other
       end
 
       def stringify_value
+        return '#nan'  if value.nan?
+        return '#inf'  if value == ::Float::INFINITY
+        return '#-inf' if value == -::Float::INFINITY
         return super.upcase unless value.is_a?(BigDecimal)
 
         sign, digits, _, exponent = value.split
@@ -55,11 +89,22 @@ module KDL
         s += "E#{exponent.negative? ? '' : '+'}#{exponent - 1}"
         s
       end
+
+      def to_v1
+        if value.nan? || value.infinite?
+          warn "[WARNING] Converting non-finite Float to KDL v1"
+        end
+        V1::Value::Float.new(value, format:, type:)
+      end
     end
 
     class Boolean < Value
-      def ==(other)
-        other.is_a?(Boolean) && value == other.value
+      def stringify_value
+        "##{value}"
+      end
+
+      def to_v1
+        V1::Value::Boolean.new(value, format:, type:)
       end
     end
 
@@ -68,8 +113,8 @@ module KDL
         StringDumper.call(value)
       end
 
-      def ==(other)
-        other.is_a?(String) && value == other.value
+      def to_v1
+        V1::Value::String.new(value, format:, type:)
       end
     end
 
@@ -79,14 +124,38 @@ module KDL
       end
 
       def stringify_value
-        "null"
+        "#null"
       end
 
       def ==(other)
-        other.is_a?(NullImpl)
+        other.is_a?(NullImpl) || other.nil?
+      end
+
+      def to_v1
+        type ? V1::Value::NullImpl.new(type:) : V1::Value::Null
       end
     end
     Null = NullImpl.new
+
+    class Custom < Value
+      attr_reader :oriinal_value
+
+      def self.call(value, type)
+        new(value, type:)
+      end
+
+      def version
+        nil
+      end
+
+      def to_v1
+        self
+      end
+
+      def to_v2
+        self
+      end
+    end
 
     def self.from(value)
       case value

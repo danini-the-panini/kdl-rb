@@ -2,7 +2,7 @@ require_relative './hostname/validator'
 
 module KDL
   module Types
-    class Hostname < Value
+    class Hostname < Value::Custom
       def self.call(value, type = 'hostname')
         return nil unless value.is_a? ::KDL::Value::String
 

@@ -2,7 +2,7 @@ require 'kdl/types/currency/iso4217_currencies'
 
 module KDL
   module Types
-    class Currency < Value
+    class Currency < Value::Custom
       attr_reader :numeric_code, :minor_unit, :name
 
       def initialize(value, format: nil, type: 'currency')

@@ -2,7 +2,7 @@ require 'base64'
 
 module KDL
   module Types
-    class Base64 < Value
+    class Base64 < Value::Custom
       RGX = /^[A-Za-z0-9+\/=]+$/.freeze
 
       def self.call(value, type = 'base64')

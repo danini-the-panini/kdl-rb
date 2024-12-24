@@ -1,6 +1,6 @@
 module KDL
   module Types
-    class URLReference < Value
+    class URLReference < Value::Custom
       def self.call(value, type = 'url-reference')
         return nil unless value.is_a? ::KDL::Value::String
 

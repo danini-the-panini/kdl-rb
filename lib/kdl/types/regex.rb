@@ -1,6 +1,6 @@
 module KDL
   module Types
-    class Regex < Value
+    class Regex < Value::Custom
       def self.call(value, type = 'regex')
         return nil unless value.is_a? ::KDL::Value::String
 
