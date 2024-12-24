@@ -4,19 +4,6 @@ require 'bigdecimal'
 
 module KDL
   class Tokenizer
-    class Error < ::KDL::Error
-      attr_reader :filename, :line, :column
-
-      def initialize(message, filename = nil, line = nil, column = nil)
-        message += " (#{line}:#{column})" if line
-        message = "#{[filename, line, column].compact.join(':')}: #{message}" if filename
-        super(message)
-        @filename = filename
-        @line = line
-        @column = column
-      end
-    end
-
     class Token
       attr_reader :type, :value, :line, :column, :meta
 
@@ -37,7 +24,6 @@ module KDL
       def to_s
         "#{value.inspect} (#{line}:#{column})"
       end
-      alias inspect to_s
     end
 
     attr_reader :index, :filename
@@ -496,9 +482,9 @@ module KDL
 
     def raise_error(error)
       case error
-      when String then raise Error.new(error, @filename, @line, @column)
+      when String then raise ParseError.new(error, @filename, @line, @column)
       when Error then raise error
-      else raise Error.new(error.message, @filename, @line, @column)
+      else raise ParseError.new(error.message, @filename, @line, @column)
       end
     end
 
