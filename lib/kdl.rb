@@ -32,7 +32,7 @@ module KDL
     when nil
       auto_parse(input, output_version:, **options)
     else
-      raise UnsupportedVersionError.new("Unsupported version '#{version}'", version)
+      raise UnsupportedVersionError.new("unsupported version '#{version}'", version)
     end
   end
 
@@ -46,7 +46,7 @@ module KDL
     parse(input, version: 2, output_version: output_version || 2, **options)
   rescue VersionMismatchError => e
     parse(input, version: e.version, output_version: output_version || e.version, **options)
-  rescue Tokenizer::Error, Racc::ParseError => e
+  rescue ParseError => e
     parse(input, version: 1, output_version: output_version || 1, **options) rescue raise e
   end
 
@@ -55,7 +55,7 @@ module KDL
     when 1 then KDL::V1
     when 2 then KDL
     else
-      warn "Unknown output_version `#{version}', defaulting to v2"
+      warn "[WARNING] Unknown output_version '#{version}', defaulting to v2"
       KDL
     end
   end
