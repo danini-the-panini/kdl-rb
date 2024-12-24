@@ -19,7 +19,7 @@ module KDL
     def check_version
       return unless doc_version = @tokenizer.version_directive
       if doc_version != parser_version
-        raise VersionMismatchError, "Version mismatch, document specified v#{doc_version}, but this is a v#{parser_version} parser", doc_version, parser_version
+        raise VersionMismatchError.new("Version mismatch, document specified v#{doc_version}, but this is a v#{parser_version} parser", doc_version, parser_version)
       end
     end
   end

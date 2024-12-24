@@ -27,8 +27,10 @@ module KDL
       Parser.new(output_module: output_module(output_version || 2), **options).parse(input)
     when 1
       V1::Parser.new.parse(input, output_module: output_module(output_version || 1), **options)
-    else
+    when nil
       auto_parse(input, output_version:, **options)
+    else
+      raise UnsupportedVersionError.new("Unsupported version '#{version}'", version)
     end
   end
 
