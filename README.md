@@ -66,10 +66,18 @@ The resulting document will also serialize back to the same version it was parse
 KDL.parse(a_string, output_version: 2)
 ```
 
-This allows you to to convert document between versions:
+This allows you to to convert documents between versions:
 
 ```ruby
 KDL.parse('foo "bar" true', version: 1, output_version: 2).to_s #=> 'foo bar #true'
+```
+
+You can also convert an already parsed document between versions with `to_v1` and `to_v2`:
+
+```ruby
+doc = KDL.parse('foo "bar" true', version: 1)
+doc.version #=> 1
+doc.to_v2.to_s #=> 'foo bar #true'
 ```
 
 You can also set the default version globally:
@@ -77,6 +85,14 @@ You can also set the default version globally:
 ```ruby
 KDL.default_version = 2
 KDL.default_output_version = 2
+```
+
+You can still force automatic version detection with `auto_parse`:
+
+```ruby
+KDL.default_version = 2
+KDL.parse('foo "bar" true') #=> Error
+KDL.auto_parse('foo "bar" true') #=> KDL::V1::Document
 ```
 
 Version directives are also respected:
