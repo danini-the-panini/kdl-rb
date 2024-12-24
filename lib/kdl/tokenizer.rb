@@ -45,8 +45,12 @@ module KDL
                   "\u2003", "\u2004", "\u2005", "\u2006",
                   "\u2007", "\u2008", "\u2009", "\u200A",
                   "\u202F", "\u205F", "\u3000" ]
+    WS = "[#{Regexp.escape(WHITESPACE.join)}]"
+    WS_STAR = /\A#{WS}*\z/
+    WS_PLUS = /\A#{WS}+\z/
 
     NEWLINES = ["\u000A", "\u0085", "\u000C", "\u2028", "\u2029"]
+    NEWLINES_PATTERN = Regexp.new("(#{NEWLINES.map{Regexp.escape(_1)}.join('|')}|\r\n?)", Regexp::MULTILINE)
 
     OTHER_NON_IDENTIFIER_CHARS = ("\x0".."\x20").to_a - WHITESPACE
 
@@ -103,10 +107,6 @@ module KDL
       a
     end
 
-    def reset
-      @index = @start
-    end
-
     def next_token
       @context = nil
       @previous_context = nil
@@ -119,13 +119,10 @@ module KDL
           case c
           when '"'
             if self[@index + 1] == '"' && self[@index + 2] == '"'
-              if self[@index + 3] == "\n"
-                self.context = :multiline_string
-                @buffer = ''
-                traverse(4)
-              else
-                raise_error "Expected NEWLINE, found '#{self[@index + 3]}'"
-              end
+              nl = expect_newline(@index + 3)
+              self.context = :multiline_string
+              @buffer = ''
+              traverse(3 + nl.length)
             else
               self.context = :string
               @buffer = ''
@@ -134,15 +131,12 @@ module KDL
           when '#'
             if self[@index + 1] == '"'
               if self[@index + 2] == '"' && self[@index + 3] == '"'
-                if self[@index + 4] == "\n"
-                  self.context = :multiline_rawstring
-                  @rawstring_hashes = 1
-                  @buffer = ''
-                  traverse(5)
-                  next
-                else
-                  raise_error "Expected NEWLINE, found '#{self[@index + 3]}'"
-                end
+                nl = expect_newline(@index + 4)
+                self.context = :multiline_rawstring
+                @rawstring_hashes = 1
+                @buffer = ''
+                traverse(4 + nl.length)
+                next
               else
                 self.context = :rawstring
                 traverse(2)
@@ -159,14 +153,11 @@ module KDL
               end
               if self[i] == '"'
                 if self[i + 1] == '"' && self[i + 2] == '"'
-                  if self[i + 3] == "\n"
-                    self.context = :multiline_rawstring
-                    traverse(@rawstring_hashes + 4)
-                    @buffer = ''
-                    next
-                  else
-                    raise_error "Expected NEWLINE, found '#{self[@index + 3]}'"
-                  end
+                  nl = expect_newline(i + 3)
+                  self.context = :multiline_rawstring
+                  traverse(@rawstring_hashes + 3 + nl.length)
+                  @buffer = ''
+                  next
                 else
                   self.context = :rawstring
                   traverse(@rawstring_hashes + 1)
@@ -222,20 +213,10 @@ module KDL
             traverse(1)
           when *SYMBOLS.keys
             return token(SYMBOLS[c], c).tap { traverse(1) }
-          when "\r"
-            n = self[@index + 1]
-            if n == "\n"
-              return token(:NEWLINE, "#{c}#{n}").tap do
-                traverse(2)
-              end
-            else
-              return token(:NEWLINE, c).tap do
-                traverse(1)
-              end
-            end
-          when *NEWLINES
-            return token(:NEWLINE, c).tap do
-              traverse(1)
+          when *NEWLINES, "\r"
+            nl = expect_newline
+            return token(:NEWLINE, nl).tap do
+              traverse(nl.length)
             end
           when "/"
             if self[@index + 1] == '/'
@@ -311,9 +292,9 @@ module KDL
             @buffer += c
             c2 = self[@index + 1]
             @buffer += c2
-            if NEWLINES.include?(c2)
+            if c2.match?(NEWLINES_PATTERN)
               i = 2
-              while NEWLINES.include?(self[@index + i])
+              while self[@index + i]&.match?(NEWLINES_PATTERN)
                 @buffer += self[@index + i]
                 i+=1
               end
@@ -323,8 +304,8 @@ module KDL
             end
           when '"'
             return token(:STRING, unescape(@buffer)).tap { traverse(1) }
-          when *NEWLINES
-            raise_error "Unexpected newline in string literal"
+          when *NEWLINES, "\r"
+            raise_error "Unexpected NEWLINE in string literal"
           when nil
             raise_error "Unterminated string literal"
           else
@@ -352,14 +333,15 @@ module KDL
         when :rawstring
           raise_error "Unterminated rawstring literal" if c.nil?
 
-          if c == '"'
+          case c
+          when '"'
             h = 0
             h += 1 while self[@index + 1 + h] == '#' && h < @rawstring_hashes
             if h == @rawstring_hashes
               return token(:RAWSTRING, @buffer).tap { traverse(1 + h) }
             end
-          elsif NEWLINES.include?(c)
-            raise_error "Unexpected newline in rawstring literal"
+          when *NEWLINES, "\r"
+            raise_error "Unexpected NEWLINE in rawstring literal"
           end
 
           @buffer += c
@@ -410,13 +392,13 @@ module KDL
             return parse_binary(@buffer)
           end
         when :single_line_comment
-          if NEWLINES.include?(c) || c == "\r"
+          if c.nil?
+            @done = true
+            return token(:EOF, :EOF)
+          elsif c.match?(NEWLINES_PATTERN)
             self.context = nil
             @column_at_start = @column
             next
-          elsif c.nil?
-            @done = true
-            return token(:EOF, :EOF)
           else
             traverse(1)
           end
@@ -466,6 +448,10 @@ module KDL
             traverse_to(t.index)
           end
           return token(:EQUALS, @buffer)
+        else
+          # :nocov:
+          raise_error "Unknown context `#{@context}'"
+          # :nocov:
         end
       end
     end
@@ -517,6 +503,23 @@ module KDL
     def revert_context
       @context = @previous_context
       @previous_context = nil
+    end
+
+    def expect_newline(i = @index)
+      c = self[i]
+      case c
+      when "\r"
+        n = self[i + 1]
+        if n == "\n"
+          "#{c}#{n}"
+        else
+          c
+        end
+      when *NEWLINES
+        c
+      else
+        raise_error "Expected NEWLINE, found '#{c}'"
+      end
     end
 
     def integer_context(n)
@@ -580,7 +583,7 @@ module KDL
       end
     end
 
-    UNESCAPE        = /\\(?:[#{WHITESPACE.join}#{NEWLINES.join}]+|[^u])/
+    UNESCAPE        = /\\(?:[#{WHITESPACE.join}#{NEWLINES.join}\r]+|[^u])/
     UNESCAPE_NON_WS = /\\(?:[^u])/
 
     def unescape_non_ws(string)
@@ -615,51 +618,24 @@ module KDL
     end
 
     def dedent(string)
-      lines = string.lines
-      if lines.last.end_with?("\n")
+      split = string.split(NEWLINES_PATTERN)
+      lines = split.partition.with_index { |_, i| i.even? }.first
+      if split.last.match?(NEWLINES_PATTERN)
         indent = ""
       else
         *lines, indent = lines
       end
       return "" if lines.empty?
-      lines.map!(&:chomp)
-      if !indent.empty? && indent.each_char.any? { |c| !WHITESPACE.include?(c) }
-        raise_error "Invalid multiline string final line"
-      end
+      raise_error "Invalid multiline string final line" unless indent.match?(WS_STAR)
+      valid = /\A(?:#{Regexp.escape(indent)})(.*)/
 
       lines.map! do |line|
-        fail = false
-        match_indent = true
-        whitespace = true
-        line.each_char.with_index do |c, i|
-          if i < indent.size
-            next if c == indent[i]
-            if WHITESPACE.include?(c)
-              match_indent = false
-            else
-              fail = true
-              break
-            end
-          else
-            next if WHITESPACE.include?(c)
-            if !match_indent
-              fail = true
-              break
-            else
-              whitespace = false
-              break
-            end
-          end
+        case line
+        when WS_STAR then ""
+        when valid then $1
+        else raise_error "Invalid multiline string indentation"
         end
-        raise_error "Invalid multiline string indentation" if fail
-
-        if whitespace
-          ''
-        else
-          line[indent.length..]
-        end
-      end
-      lines.join("\n")
+      end.join("\n")
     end
 
     def debom(str)

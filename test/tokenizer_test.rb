@@ -11,6 +11,7 @@ class TokenizerTest < Minitest::Test
   def test_string
     assert_equal t(:STRING, "foo"), ::KDL::Tokenizer.new('"foo"').next_token
     assert_equal t(:STRING, "foo\nbar"), ::KDL::Tokenizer.new('"foo\nbar"').next_token
+    assert_equal t(:STRING, "foo"), ::KDL::V1::Tokenizer.new("\"\\\n\n\nfoo\"").next_token
   end
 
   def test_rawstring

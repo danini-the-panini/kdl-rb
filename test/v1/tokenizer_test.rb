@@ -69,6 +69,7 @@ class KDL::V1::TokenizerTest < Minitest::Test
     assert_equal t(:WS, "\\\n"), ::KDL::V1::Tokenizer.new("\\\n").next_token
     assert_equal t(:WS, "\\\n"), ::KDL::V1::Tokenizer.new("\\\n//some comment").next_token
     assert_equal t(:WS, "\\\n "), ::KDL::V1::Tokenizer.new("\\\n //some comment").next_token
+    assert_equal t(:STRING, "foo"), ::KDL::V1::Tokenizer.new("\"\\\n\n\nfoo\"").next_token
   end
 
   def test_multiple_tokens

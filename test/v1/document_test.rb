@@ -21,7 +21,7 @@ class KDL::V1::DocumentTest < Minitest::Test
 
     assert_equal <<~KDL, doc.to_s
       foo lorem 1 #true #null {
-          bar "    baz\\n      qux"
+          bar "\\n    baz\\n      qux\\n  "
       }
     KDL
   end

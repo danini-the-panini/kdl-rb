@@ -42,7 +42,7 @@ module KDL
       when String, Symbol
         properties[key.to_s]&.value
       else
-        raise ArgumentError, "node can only be indexed by Integer/String"
+        raise ArgumentError, "node can only be indexed by Integer, String, or Symbol"
       end
     end
 
@@ -53,7 +53,7 @@ module KDL
       when String, Symbol
         children.find { _1.name == key.to_s }
       else
-        raise ArgumentError, "node can only be indexed by Integer/String"
+        raise ArgumentError, "node can only be indexed by Integer, String, or Symbol"
       end
     end
 

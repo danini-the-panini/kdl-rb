@@ -273,6 +273,8 @@ class ParserTest < Minitest::Test
     assert_equal ::KDL::Document.new([::KDL::Node.new('node')]), @parser.parse("node\\ \n")
     assert_equal ::KDL::Document.new([::KDL::Node.new('node')]), @parser.parse("node\\\n ")
     assert_raises { @parser.parse("node \\foo") }
+    assert_raises { @parser.parse("node\\\\\nnode2") }
+    assert_raises { @parser.parse("node \\\\\nnode2") }
   end
 
   def test_whitespace
@@ -400,12 +402,14 @@ class ParserTest < Minitest::Test
     end
     assert_raises do
       @parser.parse <<~KDL
-        node """oops
+        node """
+          oops
       KDL
     end
     assert_raises do
       @parser.parse <<~KDL
-        node #"""oops
+        node #"""
+          oops
       KDL
     end
   end

@@ -110,6 +110,7 @@ class KDL::V1::ParserTest < Minitest::Test
                  @parser.parse('node "\u{10}"')
     assert_raises { @parser.parse('node "\i"') }
     assert_raises { @parser.parse('node "\u{c0ffee}"') }
+    assert_raises { @parser.parse('node "oops') }
   end
 
   def test_float
@@ -245,6 +246,8 @@ class KDL::V1::ParserTest < Minitest::Test
   def test_escline
     assert_equal ::KDL::Document.new([::KDL::Node.new('node', [::KDL::Value.from(1)])]), @parser.parse("node\\\n  1")
     assert_raises { @parser.parse("node\\\nnode2") }
+    assert_raises { @parser.parse("node\\\\\nnode2") }
+    assert_raises { @parser.parse("node \\\\\nnode2") }
     assert_raises { @parser.parse("node  \\ //comment\n  node2") }
   end
 

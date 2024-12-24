@@ -15,8 +15,8 @@ class KDL::V1::NodeTest < Minitest::Test
 
     node = node.to_v2
     assert_equal 2, node.version
-    assert_equal 2, node[0].version
-    assert_equal 2, node[:bar].version
+    assert_equal 2, node.arguments[0].version
+    assert_equal 2, node.properties['bar'].version
     assert_equal 2, node.child(0).version
   end
 

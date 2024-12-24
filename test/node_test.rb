@@ -174,8 +174,8 @@ class NodeTest < Minitest::Test
 
     node = node.to_v1
     assert_equal 1, node.version
-    assert_equal 1, node[0].version
-    assert_equal 1, node[:bar].version
+    assert_equal 1, node.arguments[0].version
+    assert_equal 1, node.properties['bar'].version
     assert_equal 1, node.child(0).version
   end
 

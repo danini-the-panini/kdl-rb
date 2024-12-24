@@ -15,7 +15,7 @@ module KDL
       when String, Symbol
         nodes.find { _1.name == key.to_s }
       else
-        raise ArgumentError, "document can only be indexed by Integer/String"
+        raise ArgumentError, "document can only be indexed by Integer, String, or Symbol"
       end
     end
 

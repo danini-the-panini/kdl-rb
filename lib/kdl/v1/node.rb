@@ -11,9 +11,9 @@ module KDL
 
       def to_v2
         ::KDL::Node.new(name,
-          arguments: arguments.map(&:to_v1),
-          properties: properties.transform_values(&:to_v1),
-          children: children.map(&:to_v1),
+          arguments: arguments.map(&:to_v2),
+          properties: properties.transform_values(&:to_v2),
+          children: children.map(&:to_v2),
           type: type
         )
       end

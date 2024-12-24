@@ -81,26 +81,12 @@ module KDL
               else
                 raise_error "Unexpected '\\' (#{la[0]})"
               end
-            when '='
-              self.context = :equals
-              @buffer = c
-              traverse(1)
             when *SYMBOLS.keys
               return token(SYMBOLS[c], c).tap { traverse(1) }
-            when "\r"
-              n = self[@index + 1]
-              if n == "\n"
-                return token(:NEWLINE, "#{c}#{n}").tap do
-                  traverse(2)
-                end
-              else
-                return token(:NEWLINE, c).tap do
-                  traverse(1)
-                end
-              end
-            when *NEWLINES
-              return token(:NEWLINE, c).tap do
-                traverse(1)
+            when *NEWLINES, "\r"
+              nl = expect_newline
+              return token(:NEWLINE, nl).tap do
+                traverse(nl.length)
               end
             when "/"
               if self[@index + 1] == '/'
@@ -155,17 +141,16 @@ module KDL
           when :string
             case c
             when '\\'
-              @buffer += c
               c2 = self[@index + 1]
-              @buffer += c2
-              if NEWLINES.include?(c2)
+              if c2.match?(NEWLINES_PATTERN)
                 i = 2
-                while NEWLINES.include?(self[@index + i])
-                  @buffer += self[@index + i]
+                while self[@index + i].match?(NEWLINES_PATTERN)
                   i+=1
                 end
                 traverse(i)
               else
+                @buffer += c
+                @buffer += c2
                 traverse(2)
               end
             when '"'
@@ -222,13 +207,13 @@ module KDL
               return parse_binary(@buffer)
             end
           when :single_line_comment
-            if NEWLINES.include?(c) || c == "\r"
+            if c.nil?
+              @done = true
+              return token(:EOF, :EOF)
+            elsif c.match?(NEWLINES_PATTERN)
               self.context = nil
               @column_at_start = @column
               next
-            elsif c.nil?
-              @done = true
-              return token(:EOF, :EOF)
             else
               traverse(1)
             end
@@ -249,10 +234,6 @@ module KDL
             if WHITESPACE.include?(c)
               traverse(1)
               @buffer += c
-            elsif c == '='
-              self.context = :equals
-              @buffer += c
-              traverse(1)
             elsif c == "/" && self[@index + 1] == '*'
               self.context = :multi_line_comment
               @comment_nesting = 1
@@ -270,14 +251,10 @@ module KDL
             else
               return token(:WS, @buffer)
             end
-          when :equals
-            t = Tokenizer.new(@str, @index)
-            la = t.next_token
-            if la[0] == :WS
-              @buffer += la[1].value
-              traverse_to(t.index)
-            end
-            return token(:EQUALS, @buffer)
+          else
+            # :nocov:
+            raise_error "Unknown context `#{@context}'"
+            # :nocov:
           end
         end
       end
