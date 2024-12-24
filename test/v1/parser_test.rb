@@ -516,7 +516,7 @@ class KDL::V1::ParserTest < Minitest::Test
       node "foo"
     KDL
 
-    assert_raises do
+    assert_raises(KDL::VersionMismatchError) do
       @parser.parse <<~KDL
         /- kdl-version 2
         node "foo"
