@@ -207,13 +207,14 @@ module KDL
               return parse_binary(@buffer)
             end
           when :single_line_comment
-            if c.nil?
-              @done = true
-              return token(:EOF, :EOF)
-            elsif c.match?(NEWLINES_PATTERN)
+            case c
+            when *NEWLINES, "\r"
               self.context = nil
               @column_at_start = @column
               next
+            when nil
+              @done = true
+              return token(:EOF, :EOF)
             else
               traverse(1)
             end

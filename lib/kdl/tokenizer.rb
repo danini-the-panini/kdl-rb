@@ -392,13 +392,14 @@ module KDL
             return parse_binary(@buffer)
           end
         when :single_line_comment
-          if c.nil?
-            @done = true
-            return token(:EOF, :EOF)
-          elsif c.match?(NEWLINES_PATTERN)
+          case c
+          when *NEWLINES, "\r"
             self.context = nil
             @column_at_start = @column
             next
+          when nil
+            @done = true
+            return token(:EOF, :EOF)
           else
             traverse(1)
           end
@@ -464,7 +465,10 @@ module KDL
 
     def traverse(n = 1)
       n.times do |i|
-        if self[@index + i] == "\n"
+        case self[@index + i]
+        when "\r"
+          @column = 1
+        when *NEWLINES
           @line += 1
           @column = 1
         else
