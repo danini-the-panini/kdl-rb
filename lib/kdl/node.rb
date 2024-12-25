@@ -92,7 +92,7 @@ module KDL
 
     def to_s(level = 0, m = :to_s)
       indent = '    ' * level
-      s = +"#{indent}#{type ? "(#{id_to_s type, m })" : ''}#{id_to_s name, m}"
+      s = "#{indent}#{type ? "(#{id_to_s type, m })" : ''}#{id_to_s name, m}"
       unless arguments.empty?
         s << " #{arguments.map(&m).join(' ')}"
       end

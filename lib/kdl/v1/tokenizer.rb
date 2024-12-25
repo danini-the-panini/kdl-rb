@@ -77,17 +77,17 @@ module KDL
               la = t.next_token
               if la[0] == :NEWLINE || la[0] == :EOF || (la[0] == :WS && (lan = t.next_token[0]) == :NEWLINE || lan == :EOF)
                 traverse_to(t.index)
-                @buffer = +"#{c}#{la[1].value}"
+                @buffer = "#{c}#{la[1].value}"
                 @buffer << "\n" if lan == :NEWLINE
                 self.context = :whitespace
               else
                 raise_error "Unexpected '\\' (#{la[0]})"
               end
             when *SYMBOLS.keys
-              return token(SYMBOLS[c], c).tap { traverse(1) }
+              return token(SYMBOLS[c], -c).tap { traverse(1) }
             when *NEWLINES, "\r"
               nl = expect_newline
-              return token(:NEWLINE, nl).tap do
+              return token(:NEWLINE, -nl).tap do
                 traverse(nl.length)
               end
             when "/"
@@ -120,10 +120,10 @@ module KDL
               traverse(1)
             when '('
               @type_context = true
-              return token(:LPAREN, c).tap { traverse(1) }
+              return token(:LPAREN, -c).tap { traverse(1) }
             when ')'
               @type_context = false
-              return token(:RPAREN, c).tap { traverse(1) }
+              return token(:RPAREN, -c).tap { traverse(1) }
             else
               raise_error "Unexpected character #{c.inspect}"
             end
@@ -137,7 +137,7 @@ module KDL
               when 'true'  then return token(:TRUE, true)
               when 'false' then return token(:FALSE, false)
               when 'null'  then return token(:NULL, nil)
-              else return token(:IDENT, @buffer)
+              else return token(:IDENT, -@buffer)
               end
             end
           when :string
@@ -156,7 +156,7 @@ module KDL
                 traverse(2)
               end
             when '"'
-              return token(:STRING, unescape(@buffer)).tap { traverse(1) }
+              return token(:STRING, -unescape(@buffer)).tap { traverse(1) }
             when nil
               raise_error "Unterminated string literal"
             else
@@ -170,7 +170,7 @@ module KDL
               h = 0
               h += 1 while self[@index + 1 + h] == '#' && h < @rawstring_hashes
               if h == @rawstring_hashes
-                return token(:RAWSTRING, @buffer).tap { traverse(1 + h) }
+                return token(:RAWSTRING, -@buffer).tap { traverse(1 + h) }
               end
             end
 
@@ -252,7 +252,7 @@ module KDL
                 raise_error "Unexpected '\\' (#{la[0]})"
               end
             else
-              return token(:WS, @buffer)
+              return token(:WS, -@buffer)
             end
           else
             # :nocov:

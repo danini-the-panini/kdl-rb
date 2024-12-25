@@ -203,7 +203,7 @@ module KDL
             la = t.next_token
             if la[0] == :NEWLINE || la[0] == :EOF || (la[0] == :WS && (lan = t.next_token[0]) == :NEWLINE || lan == :EOF)
               traverse_to(t.index)
-              @buffer = +"#{c}#{la[1].value}"
+              @buffer = "#{c}#{la[1].value}"
               @buffer << "\n" if lan == :NEWLINE
               self.context = :whitespace
             else
@@ -214,10 +214,10 @@ module KDL
             @buffer = +c
             traverse(1)
           when *SYMBOLS.keys
-            return token(SYMBOLS[c], c).tap { traverse(1) }
+            return token(SYMBOLS[c], -c).tap { traverse(1) }
           when *NEWLINES, "\r"
             nl = expect_newline
-            return token(:NEWLINE, nl).tap do
+            return token(:NEWLINE, -nl).tap do
               traverse(nl.length)
             end
           when "/"
@@ -250,10 +250,10 @@ module KDL
             traverse(1)
           when '('
             @type_context = true
-            return token(:LPAREN, c).tap { traverse(1) }
+            return token(:LPAREN, -c).tap { traverse(1) }
           when ')'
             @type_context = false
-            return token(:RPAREN, c).tap { traverse(1) }
+            return token(:RPAREN, -c).tap { traverse(1) }
           else
             raise_error "Unexpected character #{c.inspect}"
           end
@@ -269,7 +269,7 @@ module KDL
             when /\A\.\d/
               raise_error "Identifier cannot look like an illegal float"
             else
-              return token(:IDENT, @buffer)
+              return token(:IDENT, -@buffer)
             end
           end
         when :keyword
@@ -305,7 +305,7 @@ module KDL
               traverse(2)
             end
           when '"'
-            return token(:STRING, unescape(@buffer)).tap { traverse(1) }
+            return token(:STRING, -unescape(@buffer)).tap { traverse(1) }
           when *NEWLINES, "\r"
             raise_error "Unexpected NEWLINE in string literal"
           when nil
@@ -322,7 +322,7 @@ module KDL
             traverse(2)
           when '"'
             if self[@index + 1] == '"' && self[@index + 2] == '"'
-              return token(:STRING, unescape_non_ws(dedent(unescape_ws(@buffer)))).tap { traverse(3) }
+              return token(:STRING, -unescape_non_ws(dedent(unescape_ws(@buffer)))).tap { traverse(3) }
             end
             @buffer << c
             traverse(1)
@@ -340,7 +340,7 @@ module KDL
             h = 0
             h += 1 while self[@index + 1 + h] == '#' && h < @rawstring_hashes
             if h == @rawstring_hashes
-              return token(:RAWSTRING, @buffer).tap { traverse(1 + h) }
+              return token(:RAWSTRING, -@buffer).tap { traverse(1 + h) }
             end
           when *NEWLINES, "\r"
             raise_error "Unexpected NEWLINE in rawstring literal"
@@ -355,7 +355,7 @@ module KDL
             h = 1
             h += 1 while self[@index + 3 + h] == '#' && h < @rawstring_hashes
             if h == @rawstring_hashes
-              return token(:RAWSTRING, dedent(@buffer)).tap { traverse(3 + h) }
+              return token(:RAWSTRING, -dedent(@buffer)).tap { traverse(3 + h) }
             end
           end
 
@@ -441,7 +441,7 @@ module KDL
               raise_error "Unexpected '\\' (#{la[0]})"
             end
           else
-            return token(:WS, @buffer)
+            return token(:WS, -@buffer)
           end
         when :equals
           t = Tokenizer.new(@str, @index)
@@ -450,7 +450,7 @@ module KDL
             @buffer << la[1].value
             traverse_to(t.index)
           end
-          return token(:EQUALS, @buffer)
+          return token(:EQUALS, -@buffer)
         else
           # :nocov:
           raise_error "Unknown context `#{@context}'"
@@ -542,7 +542,7 @@ module KDL
       token(:INTEGER, Integer(munch_underscores(s), 10), format: '%d')
     rescue
       if s[0] =~ INITIAL_IDENTIFIER_CHARS && s[1..-1].each_char.all? { |c| c =~ IDENTIFIER_CHARS }
-        token(:IDENT, s)
+        token(:IDENT, -s)
       else
         raise
       end
