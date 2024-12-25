@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'bigdecimal'
 
 module KDL
@@ -74,7 +76,7 @@ module KDL
       @rawstring_hashes = nil
       @start = start
       @index = start
-      @buffer = ""
+      @buffer = +""
       @done = false
       @previous_context = nil
       @line = 1
@@ -121,11 +123,11 @@ module KDL
             if self[@index + 1] == '"' && self[@index + 2] == '"'
               nl = expect_newline(@index + 3)
               self.context = :multiline_string
-              @buffer = ''
+              @buffer = +''
               traverse(3 + nl.length)
             else
               self.context = :string
-              @buffer = ''
+              @buffer = +''
               traverse(1)
             end
           when '#'
@@ -134,14 +136,14 @@ module KDL
                 nl = expect_newline(@index + 4)
                 self.context = :multiline_rawstring
                 @rawstring_hashes = 1
-                @buffer = ''
+                @buffer = +''
                 traverse(4 + nl.length)
                 next
               else
                 self.context = :rawstring
                 traverse(2)
                 @rawstring_hashes = 1
-                @buffer = ''
+                @buffer = +''
                 next
               end
             elsif self[@index + 1] == '#'
@@ -156,18 +158,18 @@ module KDL
                   nl = expect_newline(i + 3)
                   self.context = :multiline_rawstring
                   traverse(@rawstring_hashes + 3 + nl.length)
-                  @buffer = ''
+                  @buffer = +''
                   next
                 else
                   self.context = :rawstring
                   traverse(@rawstring_hashes + 1)
-                  @buffer = ''
+                  @buffer = +''
                   next
                 end
               end
             end
             self.context = :keyword
-            @buffer = c
+            @buffer = +c
             traverse(1)
           when '-'
             n = self[@index + 1]
@@ -184,16 +186,16 @@ module KDL
               self.context = :ident
               traverse(1)
             end
-            @buffer = c
+            @buffer = +c
           when /[0-9+]/
             n = self[@index + 1]
             if c == '0' && n =~ /[box]/
               traverse(2)
-              @buffer = ''
+              @buffer = +''
               self.context = integer_context(n)
             else
               self.context = :decimal
-              @buffer = c
+              @buffer = +c
               traverse(1)
             end
           when '\\'
@@ -201,15 +203,15 @@ module KDL
             la = t.next_token
             if la[0] == :NEWLINE || la[0] == :EOF || (la[0] == :WS && (lan = t.next_token[0]) == :NEWLINE || lan == :EOF)
               traverse_to(t.index)
-              @buffer = "#{c}#{la[1].value}"
-              @buffer += "\n" if lan == :NEWLINE
+              @buffer = +"#{c}#{la[1].value}"
+              @buffer << "\n" if lan == :NEWLINE
               self.context = :whitespace
             else
               raise_error "Unexpected '\\' (#{la[0]})"
             end
           when '='
             self.context = :equals
-            @buffer = c
+            @buffer = +c
             traverse(1)
           when *SYMBOLS.keys
             return token(SYMBOLS[c], c).tap { traverse(1) }
@@ -230,12 +232,12 @@ module KDL
               return token(:SLASHDASH, '/-').tap { traverse(2) }
             else
               self.context = :ident
-              @buffer = c
+              @buffer = +c
               traverse(1)
             end
           when *WHITESPACE
             self.context = :whitespace
-            @buffer = c
+            @buffer = +c
             traverse(1)
           when nil
             return [false, token(:EOF, :EOF)[1]] if @done
@@ -244,7 +246,7 @@ module KDL
             return token(:EOF, :EOF)
           when INITIAL_IDENTIFIER_CHARS
             self.context = :ident
-            @buffer = c
+            @buffer = +c
             traverse(1)
           when '('
             @type_context = true
@@ -259,7 +261,7 @@ module KDL
           case c
           when IDENTIFIER_CHARS
             traverse(1)
-            @buffer += c
+            @buffer << c
           else
             case @buffer
             when 'true', 'false', 'null', 'inf', '-inf', 'nan'
@@ -274,7 +276,7 @@ module KDL
           case c
           when /[a-z\-]/
             traverse(1)
-            @buffer += c
+            @buffer << c
           else
             case @buffer
             when '#true'  then return token(:TRUE, true)
@@ -289,13 +291,13 @@ module KDL
         when :string
           case c
           when '\\'
-            @buffer += c
+            @buffer << c
             c2 = self[@index + 1]
-            @buffer += c2
+            @buffer << c2
             if c2.match?(NEWLINES_PATTERN)
               i = 2
               while self[@index + i]&.match?(NEWLINES_PATTERN)
-                @buffer += self[@index + i]
+                @buffer << self[@index + i]
                 i+=1
               end
               traverse(i)
@@ -309,25 +311,25 @@ module KDL
           when nil
             raise_error "Unterminated string literal"
           else
-            @buffer += c
+            @buffer << c
             traverse(1)
           end
         when :multiline_string
           case c
           when '\\'
-            @buffer += c
-            @buffer += self[@index + 1]
+            @buffer << c
+            @buffer << self[@index + 1]
             traverse(2)
           when '"'
             if self[@index + 1] == '"' && self[@index + 2] == '"'
               return token(:STRING, unescape_non_ws(dedent(unescape_ws(@buffer)))).tap { traverse(3) }
             end
-            @buffer += c
+            @buffer << c
             traverse(1)
           when nil
             raise_error "Unterminated multi-line string literal"
           else
-            @buffer += c
+            @buffer << c
             traverse(1)
           end
         when :rawstring
@@ -344,7 +346,7 @@ module KDL
             raise_error "Unexpected NEWLINE in rawstring literal"
           end
 
-          @buffer += c
+          @buffer << c
           traverse(1)
         when :multiline_rawstring
           raise_error "Unterminated multi-line rawstring literal" if c.nil?
@@ -357,13 +359,13 @@ module KDL
             end
           end
 
-          @buffer += c
+          @buffer << c
           traverse(1)
         when :decimal
           case c
           when /[0-9.\-+_eE]/
             traverse(1)
-            @buffer += c
+            @buffer << c
           else
             return parse_decimal(@buffer)
           end
@@ -371,7 +373,7 @@ module KDL
           case c
           when /[0-9a-fA-F_]/
             traverse(1)
-            @buffer += c
+            @buffer << c
           else
             return parse_hexadecimal(@buffer)
           end
@@ -379,7 +381,7 @@ module KDL
           case c
           when /[0-7_]/
             traverse(1)
-            @buffer += c
+            @buffer << c
           else
             return parse_octal(@buffer)
           end
@@ -387,7 +389,7 @@ module KDL
           case c
           when /[01_]/
             traverse(1)
-            @buffer += c
+            @buffer << c
           else
             return parse_binary(@buffer)
           end
@@ -419,10 +421,10 @@ module KDL
         when :whitespace
           if WHITESPACE.include?(c)
             traverse(1)
-            @buffer += c
+            @buffer << c
           elsif c == '='
             self.context = :equals
-            @buffer += c
+            @buffer << c
             traverse(1)
           elsif c == "/" && self[@index + 1] == '*'
             self.context = :multi_line_comment
@@ -433,8 +435,8 @@ module KDL
             la = t.next_token
             if la[0] == :NEWLINE || la[0] == :EOF || (la[0] == :WS && (lan = t.next_token[0]) == :NEWLINE || lan == :EOF)
               traverse_to(t.index)
-              @buffer += "#{c}#{la[1].value}"
-              @buffer += "\n" if lan == :NEWLINE
+              @buffer << "#{c}#{la[1].value}"
+              @buffer << "\n" if lan == :NEWLINE
             else
               raise_error "Unexpected '\\' (#{la[0]})"
             end
@@ -445,7 +447,7 @@ module KDL
           t = Tokenizer.new(@str, @index)
           la = t.next_token
           if la[0] == :WS
-            @buffer += la[1].value
+            @buffer << la[1].value
             traverse_to(t.index)
           end
           return token(:EQUALS, @buffer)

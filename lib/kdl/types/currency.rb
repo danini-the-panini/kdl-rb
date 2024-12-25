@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'kdl/types/currency/iso4217_currencies'
 
 module KDL

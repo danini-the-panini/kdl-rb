@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module KDL
   class Node
     class Custom < Node

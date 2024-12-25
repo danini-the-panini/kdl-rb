@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Shamelessly borrowed from https://github.com/rails/rails/tree/main/activesupport
 #
 # Copyright (c) 2005-2021 David Heinemeier Hansson

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "kdl/version"
 require "kdl/error"
 require "kdl/tokenizer"

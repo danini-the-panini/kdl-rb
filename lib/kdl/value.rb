@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module KDL
   class Value
     attr_reader :value, :format, :type
