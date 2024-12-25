@@ -13,7 +13,7 @@ module KDL
         end
 
         def parse
-          local = ''
+          local = +''
           unicode_domain = nil
           domain = nil
           context = :start
@@ -25,7 +25,7 @@ module KDL
             when :part
               case context
               when :start, :after_dot
-                local += value
+                local << value
                 context = :after_part
               else
                 raise ArgumentError, "invalid email #{@string} (unexpected part #{value} at #{context})"
@@ -33,7 +33,7 @@ module KDL
             when :dot
               case context
               when :after_part
-                local += value
+                local << value
                 context = :after_dot
               else
                 raise ArgumentError, "invalid email #{@string} (unexpected dot at #{context})"
@@ -93,7 +93,7 @@ module KDL
             end
           end
           @context = nil
-          @buffer = ''
+          @buffer = +''
           loop do
             c = @string[@index]
             return [:end, nil] if c.nil?
@@ -113,7 +113,7 @@ module KDL
                 @index += 1
               when local_part_chars
                 @context = :part
-                @buffer += c
+                @buffer << c
                 @index += 1
               else
                 raise ArgumentError, "invalid email #{@string} (unexpected #{c})"
@@ -121,7 +121,7 @@ module KDL
             when :part
               case c
               when local_part_chars
-                @buffer += c
+                @buffer << c
                 @index += 1
               when '.', '@'
                 return [:part, @buffer]
@@ -137,7 +137,7 @@ module KDL
                 @index += 1
                 return [:part, @buffer]
               else
-                @buffer += c
+                @buffer << c
                 @index += 1
               end
             end
