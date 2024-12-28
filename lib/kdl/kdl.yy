@@ -43,7 +43,7 @@ rule
   empty_childrens: empty_children | empty_childrens empty_children
   node_term: linespaces | semicolon_term
   semicolon_term: SEMICOLON | SEMICOLON linespaces
-  slashdash: SLASHDASH | slashdash ws_plus | slashdash linespaces
+  slashdash: SLASHDASH | slashdash linespaces
 
   type : LPAREN ws_star identifier ws_star RPAREN ws_star { val[2] }
 
