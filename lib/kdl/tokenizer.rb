@@ -486,8 +486,12 @@ module KDL
       traverse(i - @index)
     end
 
-    def raise_error(message)
-      raise Error.new(message, @line, @column)
+    def raise_error(error)
+      case error
+      when String then raise Error.new(error, @line, @column)
+      when Error then raise error
+      else raise Error.new(error.message, @line, @column)
+      end
     end
 
     def context=(val)
@@ -542,11 +546,11 @@ module KDL
       return parse_float(s) if s =~ /[.E]/i
 
       token(:INTEGER, Integer(munch_underscores(s), 10), format: '%d')
-    rescue
+    rescue => e
       if s[0] =~ INITIAL_IDENTIFIER_CHARS && s[1..-1].each_char.all? { |c| c =~ IDENTIFIER_CHARS }
         token(:IDENT, -s)
       else
-        raise
+        raise_error(e)
       end
     end
 
@@ -568,14 +572,20 @@ module KDL
 
     def parse_hexadecimal(s)
       token(:INTEGER, Integer(munch_underscores(s), 16))
+    rescue ArgumentError => e
+      raise_error(e)
     end
 
     def parse_octal(s)
       token(:INTEGER, Integer(munch_underscores(s), 8))
+    rescue ArgumentError => e
+      raise_error(e)
     end
 
     def parse_binary(s)
       token(:INTEGER, Integer(munch_underscores(s), 2))
+    rescue ArgumentError => e
+      raise_error(e)
     end
 
     def munch_underscores(s)
@@ -603,8 +613,8 @@ module KDL
         .gsub(rgx) { |m| replace_esc(m) }
         .gsub(/\\u\{[0-9a-fA-F]{0,6}\}/) do |m|
           i = Integer(m[3..-2], 16)
-          if i < 0 || i > 0x10FFFF
-            raise_error "Invalid code point #{u}"
+          if i < 0 || i > 0x10FFFF || (0xD800..0xDFFF).include?(i)
+            raise_error "Invalid code point #{m}"
           end
           i.chr(Encoding::UTF_8)
         end
