@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module KDL
   module V1
     class Node < ::KDL::Node

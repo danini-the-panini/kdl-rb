@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module KDL
   module Types
     class IRLReference < Value::Custom
@@ -96,13 +98,13 @@ module KDL
         end
 
         def self.build_uri_string(scheme, auth, domain, path, search, hash)
-          string = ''
-          string += "#{scheme}://" if scheme
-          string += auth if auth
-          string += domain if domain
-          string += path if path
-          string += "?#{search}" if search
-          string += "##{hash}" if hash
+          string = +''
+          string << "#{scheme}://" if scheme
+          string << auth if auth
+          string << domain if domain
+          string << path if path
+          string << "?#{search}" if search
+          string << "##{hash}" if hash
           string
         end
       end

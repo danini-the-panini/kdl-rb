@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "kdl/v1/tokenizer"
 require "kdl/v1/document"
 require "kdl/v1/value"

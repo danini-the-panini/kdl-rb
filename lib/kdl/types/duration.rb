@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'kdl/types/duration/iso8601_parser'
 
 module KDL

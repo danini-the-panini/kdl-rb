@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module KDL
   class Value
     attr_reader :value, :format, :type
@@ -84,9 +86,10 @@ module KDL
         return super.upcase unless value.is_a?(BigDecimal)
 
         sign, digits, _, exponent = value.split
-        s = sign.negative? ? '-' : ''
-        s += "#{digits[0]}.#{digits[1..-1]}"
-        s += "E#{exponent.negative? ? '' : '+'}#{exponent - 1}"
+        s = +''
+        s << '-' if sign.negative?
+        s << "#{digits[0]}.#{digits[1..-1]}"
+        s << "E#{exponent.negative? ? '' : '+'}#{exponent - 1}"
         s
       end
 

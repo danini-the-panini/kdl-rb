@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module KDL
   class Node
     class Custom < Node
@@ -92,15 +94,15 @@ module KDL
       indent = '    ' * level
       s = "#{indent}#{type ? "(#{id_to_s type, m })" : ''}#{id_to_s name, m}"
       unless arguments.empty?
-        s += " #{arguments.map(&m).join(' ')}"
+        s << " #{arguments.map(&m).join(' ')}"
       end
       unless properties.empty?
-        s += " #{properties.map { |k, v| "#{id_to_s k, m}=#{v.public_send(m)}" }.join(' ')}"
+        s << " #{properties.map { |k, v| "#{id_to_s k, m}=#{v.public_send(m)}" }.join(' ')}"
       end
       unless children.empty?
-        s += " {\n"
-        s += children.map { |c| "#{c.public_send(m, level + 1)}" }.join("\n")
-        s += "\n#{indent}}"
+        s << " {\n"
+        s << children.map { |c| "#{c.public_send(m, level + 1)}" }.join("\n")
+        s << "\n#{indent}}"
       end
       s
     end

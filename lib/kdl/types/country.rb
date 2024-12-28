@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'kdl/types/country/iso3166_countries'
 require 'kdl/types/country/iso3166_subdivisions'
 

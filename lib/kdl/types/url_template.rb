@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'uri'
 
 module KDL
@@ -39,7 +41,7 @@ module KDL
         end
 
         def next_token
-          buffer = ''
+          buffer = +''
           context = nil
           expansion_type = nil
           loop do
@@ -49,7 +51,7 @@ module KDL
               case c
               when '{'
                 context = :expansion
-                buffer = ''
+                buffer = +''
                 n = @string[@index + 1]
                 expansion_type = case n
                                  when '+' then ReservedExpansion
@@ -64,7 +66,7 @@ module KDL
                 @index += (expansion_type == StringExpansion ? 1 : 2)
               when nil then return nil
               else
-                buffer = c
+                buffer = +c
                 @index += 1
                 context = :literal
               end
