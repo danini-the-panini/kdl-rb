@@ -22,7 +22,8 @@ class KDL::V1::SpecTest < Minitest::Test
     end
     else
       define_method "test_v1_#{input_name}_does_not_parse" do
-        assert_raises { ::KDL.load_file(input_path, version: 1) }
+        err = assert_raises { ::KDL.load_file(input_path, version: 1) }
+        raise err unless err.is_a?(KDL::Error) || err.is_a?(Racc::ParseError)
       end
     end
   end
