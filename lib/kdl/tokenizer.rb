@@ -42,16 +42,16 @@ module KDL
       '=' => :EQUALS
     }
 
-    WHITESPACE = ["\u0009", "\u000B", "\u0020", "\u00A0",
-                  "\u1680", "\u2000", "\u2001", "\u2002",
-                  "\u2003", "\u2004", "\u2005", "\u2006",
-                  "\u2007", "\u2008", "\u2009", "\u200A",
-                  "\u202F", "\u205F", "\u3000" ]
+    WHITESPACE = ["\u0009", "\u0020", "\u00A0", "\u1680",
+                  "\u2000", "\u2001", "\u2002", "\u2003",
+                  "\u2004", "\u2005", "\u2006", "\u2007",
+                  "\u2008", "\u2009", "\u200A", "\u202F",
+                  "\u205F", "\u3000"]
     WS = "[#{Regexp.escape(WHITESPACE.join)}]"
     WS_STAR = /\A#{WS}*\z/
     WS_PLUS = /\A#{WS}+\z/
 
-    NEWLINES = ["\u000A", "\u0085", "\u000C", "\u2028", "\u2029"]
+    NEWLINES = ["\u000A", "\u0085", "\u000B", "\u000C", "\u2028", "\u2029"]
     NEWLINES_PATTERN = Regexp.new("(#{NEWLINES.map{Regexp.escape(_1)}.join('|')}|\r\n?)", Regexp::MULTILINE)
 
     OTHER_NON_IDENTIFIER_CHARS = ("\x0".."\x20").to_a - WHITESPACE
@@ -70,6 +70,8 @@ module KDL
       "\uFEFF"
     ]
 
+    VERSION_PATTERN = /\A\/-[#{WHITESPACE.join}]*kdl-version[#{WHITESPACE.join}]+(\d+)[#{WHITESPACE.join}]*[#{NEWLINES.join}]/
+
     def initialize(str, start = 0)
       @str = debom(str)
       @context = nil
@@ -86,7 +88,7 @@ module KDL
     end
 
     def version_directive
-      if m = @str.match(/\A\/-[#{WHITESPACE.join}]*kdl-version[#{WHITESPACE.join}]+(\d+)\s*[#{NEWLINES.join}]/)
+      if m = @str.match(VERSION_PATTERN)
         m[1].to_i
       end
     end
@@ -484,8 +486,12 @@ module KDL
       traverse(i - @index)
     end
 
-    def raise_error(message)
-      raise Error.new(message, @line, @column)
+    def raise_error(error)
+      case error
+      when String then raise Error.new(error, @line, @column)
+      when Error then raise error
+      else raise Error.new(error.message, @line, @column)
+      end
     end
 
     def context=(val)
@@ -540,11 +546,11 @@ module KDL
       return parse_float(s) if s =~ /[.E]/i
 
       token(:INTEGER, Integer(munch_underscores(s), 10), format: '%d')
-    rescue
+    rescue => e
       if s[0] =~ INITIAL_IDENTIFIER_CHARS && s[1..-1].each_char.all? { |c| c =~ IDENTIFIER_CHARS }
         token(:IDENT, -s)
       else
-        raise
+        raise_error(e)
       end
     end
 
@@ -566,14 +572,20 @@ module KDL
 
     def parse_hexadecimal(s)
       token(:INTEGER, Integer(munch_underscores(s), 16))
+    rescue ArgumentError => e
+      raise_error(e)
     end
 
     def parse_octal(s)
       token(:INTEGER, Integer(munch_underscores(s), 8))
+    rescue ArgumentError => e
+      raise_error(e)
     end
 
     def parse_binary(s)
       token(:INTEGER, Integer(munch_underscores(s), 2))
+    rescue ArgumentError => e
+      raise_error(e)
     end
 
     def munch_underscores(s)
@@ -601,8 +613,8 @@ module KDL
         .gsub(rgx) { |m| replace_esc(m) }
         .gsub(/\\u\{[0-9a-fA-F]{0,6}\}/) do |m|
           i = Integer(m[3..-2], 16)
-          if i < 0 || i > 0x10FFFF
-            raise_error "Invalid code point #{u}"
+          if i < 0 || i > 0x10FFFF || (0xD800..0xDFFF).include?(i)
+            raise_error "Invalid code point #{m}"
           end
           i.chr(Encoding::UTF_8)
         end
@@ -633,9 +645,9 @@ module KDL
       end
       return "" if lines.empty?
       raise_error "Invalid multiline string final line" unless indent.match?(WS_STAR)
-      valid = /\A(?:#{Regexp.escape(indent)})(.*)/
+      valid = /\A#{Regexp.escape(indent)}(.*)/
 
-      lines.map! do |line|
+      lines.map do |line|
         case line
         when WS_STAR then ""
         when valid then $1
