@@ -42,16 +42,16 @@ module KDL
       '=' => :EQUALS
     }
 
-    WHITESPACE = ["\u0009", "\u000B", "\u0020", "\u00A0",
-                  "\u1680", "\u2000", "\u2001", "\u2002",
-                  "\u2003", "\u2004", "\u2005", "\u2006",
-                  "\u2007", "\u2008", "\u2009", "\u200A",
-                  "\u202F", "\u205F", "\u3000" ]
+    WHITESPACE = ["\u0009", "\u0020", "\u00A0", "\u1680",
+                  "\u2000", "\u2001", "\u2002", "\u2003",
+                  "\u2004", "\u2005", "\u2006", "\u2007",
+                  "\u2008", "\u2009", "\u200A", "\u202F",
+                  "\u205F", "\u3000" ]
     WS = "[#{Regexp.escape(WHITESPACE.join)}]"
     WS_STAR = /\A#{WS}*\z/
     WS_PLUS = /\A#{WS}+\z/
 
-    NEWLINES = ["\u000A", "\u0085", "\u000C", "\u2028", "\u2029"]
+    NEWLINES = ["\u000A", "\u0085", "\u000B", "\u000C", "\u2028", "\u2029"]
     NEWLINES_PATTERN = Regexp.new("(#{NEWLINES.map{Regexp.escape(_1)}.join('|')}|\r\n?)", Regexp::MULTILINE)
 
     OTHER_NON_IDENTIFIER_CHARS = ("\x0".."\x20").to_a - WHITESPACE

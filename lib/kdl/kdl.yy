@@ -22,11 +22,11 @@ rule
   unterm_node    : untyped_node      { val[0] }
                  | type untyped_node { val[1].as_type(val[0], @type_parsers.fetch(val[0], nil)) }
   untyped_node   : node_decl                                               { val[0].tap { |x| x.children = [] } }
-                 | node_decl node_children                                 { val[0].tap { |x| x.children = val[1] } }
-                 | node_decl empty_childrens                               { val[0].tap { |x| x.children = [] } }
-                 | node_decl empty_childrens node_children                 { val[0].tap { |x| x.children = val[2] } }
-                 | node_decl node_children empty_childrens                 { val[0].tap { |x| x.children = val[1] } }
-                 | node_decl empty_childrens node_children empty_childrens { val[0].tap { |x| x.children = val[2] } }
+                 | node_decl ws_plus node_children                                 { val[0].tap { |x| x.children = val[2] } }
+                 | node_decl ws_plus empty_childrens                               { val[0].tap { |x| x.children = [] } }
+                 | node_decl ws_plus empty_childrens node_children                 { val[0].tap { |x| x.children = val[3] } }
+                 | node_decl ws_plus node_children empty_childrens                 { val[0].tap { |x| x.children = val[2] } }
+                 | node_decl ws_plus empty_childrens node_children empty_childrens { val[0].tap { |x| x.children = val[3] } }
   node_decl      : identifier                           { @output_module::Node.new(val[0]) }
                  | node_decl ws_plus value              { val[0].tap { |x| x.arguments << val[2] } }
                  | node_decl ws_plus slashdash value    { val[0] }
