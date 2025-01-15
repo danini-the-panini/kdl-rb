@@ -56,7 +56,7 @@ class ParserTest < Minitest::Test
     assert_equal ::KDL::Document.new([]), @parser.parse("/- node\n")
     assert_equal ::KDL::Document.new([]), @parser.parse('/-node 1 2 3')
     assert_equal ::KDL::Document.new([]), @parser.parse('/-node key=#false')
-    assert_equal ::KDL::Document.new([]), @parser.parse("/-node{\nnode\n}")
+    assert_equal ::KDL::Document.new([]), @parser.parse("/-node {\nnode\n}")
     assert_equal ::KDL::Document.new([]), @parser.parse("/-node 1 2 3 key=\"value\" \\\n{\nnode\n}")
   end
 
