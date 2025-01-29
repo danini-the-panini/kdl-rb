@@ -611,8 +611,10 @@ module KDL
     def unescape(string, rgx = UNESCAPE)
       string
         .gsub(rgx) { |m| replace_esc(m) }
-        .gsub(/\\u\{[0-9a-fA-F]{0,6}\}/) do |m|
-          i = Integer(m[3..-2], 16)
+        .gsub(/\\u\{[0-9a-fA-F]+\}/) do |m|
+          digits = m[3..-2]
+          raise_error "Invalid code point #{m}" if digits.length > 6
+          i = Integer(digits, 16)
           if i < 0 || i > 0x10FFFF || (0xD800..0xDFFF).include?(i)
             raise_error "Invalid code point #{m}"
           end
@@ -637,6 +639,8 @@ module KDL
 
     def dedent(string)
       split = string.split(NEWLINES_PATTERN)
+      return "" if split.empty?
+
       lines = split.partition.with_index { |_, i| i.even? }.first
       if split.last.match?(NEWLINES_PATTERN)
         indent = ""
