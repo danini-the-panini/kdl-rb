@@ -543,6 +543,7 @@ module KDL
     end
 
     def parse_decimal(s)
+      puts "PARSE DEC: '#{s}'"
       return parse_float(s) if s =~ /[.E]/i
 
       token(:INTEGER, Integer(munch_underscores(s), 10), format: '%d')
@@ -555,6 +556,7 @@ module KDL
     end
 
     def parse_float(s)
+      puts "PARSE FLOAT: '#{s}'"
       match, _, fraction, exponent = *s.match(/^([-+]?[\d_]+)(?:\.([\d_]+))?(?:[eE]([-+]?[\d_]+))?$/)
       raise_error "Invalid floating point value #{s}" if match.nil?
 
@@ -637,6 +639,8 @@ module KDL
 
     def dedent(string)
       split = string.split(NEWLINES_PATTERN)
+      return "" if split.empty?
+
       lines = split.partition.with_index { |_, i| i.even? }.first
       if split.last.match?(NEWLINES_PATTERN)
         indent = ""
