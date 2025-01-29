@@ -22,16 +22,16 @@ rule
   unterm_node    : untyped_node      { val[0] }
                  | type untyped_node { val[1].as_type(val[0], @type_parsers.fetch(val[0], nil)) }
   untyped_node   : node_decl                                                       { val[0].tap { |x| x.children = [] } }
-                 | node_decl ws_plus node_children                                 { val[0].tap { |x| x.children = val[2] } }
-                 | node_decl ws_plus empty_childrens                               { val[0].tap { |x| x.children = [] } }
-                 | node_decl ws_plus empty_childrens node_children                 { val[0].tap { |x| x.children = val[3] } }
-                 | node_decl ws_plus node_children empty_childrens                 { val[0].tap { |x| x.children = val[2] } }
-                 | node_decl ws_plus empty_childrens node_children empty_childrens { val[0].tap { |x| x.children = val[3] } }
+                 | node_decl ws_star node_children                                 { val[0].tap { |x| x.children = val[2] } }
+                 | node_decl ws_star empty_childrens                               { val[0].tap { |x| x.children = [] } }
+                 | node_decl ws_star empty_childrens node_children                 { val[0].tap { |x| x.children = val[3] } }
+                 | node_decl ws_star node_children empty_childrens                 { val[0].tap { |x| x.children = val[2] } }
+                 | node_decl ws_star empty_childrens node_children empty_childrens { val[0].tap { |x| x.children = val[3] } }
   node_decl      : identifier                           { @output_module::Node.new(val[0]) }
                  | node_decl ws_plus value              { val[0].tap { |x| x.arguments << val[2] } }
-                 | node_decl ws_plus slashdash value    { val[0] }
+                 | node_decl ws_star slashdash value    { val[0] }
                  | node_decl ws_plus property           { val[0].tap { |x| x.properties[val[2][0]] = val[2][1] } }
-                 | node_decl ws_plus slashdash property { val[0] }
+                 | node_decl ws_star slashdash property { val[0] }
                  | node_decl ws_plus                    { val[0] }
   empty_node     : slashdash node
   node_children  : ws_star LBRACE nodes RBRACE                          { val[2] }
