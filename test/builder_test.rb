@@ -23,5 +23,15 @@ class BuilderTest < Minitest::Test
       }
     KDL
   end
+
+  def test_shorthand
+    doc = KDL.build do |kdl|
+      kdl.node "pokemon", "snorlax", { "Pokemon type" => "normal" }, "jigglypuff", level: 10, trainer: "Sylphrena"
+    end
+
+    assert_equal <<~KDL, doc.to_s
+      pokemon snorlax jigglypuff "Pokemon type"=normal level=10 trainer=Sylphrena
+    KDL
+  end
   
 end
