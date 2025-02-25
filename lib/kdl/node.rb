@@ -48,6 +48,10 @@ module KDL
       end
     end
 
+    def <<(node)
+      children << node
+    end
+
     def child(key)
       case key
       when Integer

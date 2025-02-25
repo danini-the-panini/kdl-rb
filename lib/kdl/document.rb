@@ -6,7 +6,7 @@ module KDL
 
     attr_accessor :nodes
 
-    def initialize(nodes)
+    def initialize(nodes = [])
       @nodes = nodes
     end
 
@@ -19,6 +19,10 @@ module KDL
       else
         raise ArgumentError, "document can only be indexed by Integer, String, or Symbol"
       end
+    end
+
+    def <<(node)
+      nodes << node
     end
 
     def arg(key)
