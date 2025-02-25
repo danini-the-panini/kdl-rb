@@ -17,10 +17,11 @@ module KDL
     def node(name, *args, type: nil, **props, &block)
       node = Node.new(name, type:)
       @nesting << node
-      args.each do |val|
-        case val
-        when Hash then props.merge!(val)
-        else arg val
+      args.each do |value|
+        case value
+        when Hash
+          value.each { |k, v| prop k, v }
+        else arg value
         end
       end
       props.each do |key, value|
