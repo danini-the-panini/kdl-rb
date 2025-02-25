@@ -4,12 +4,6 @@ require 'bigdecimal'
 
 module KDL
   class Tokenizer
-    class Error < ::KDL::Error
-      def initialize(message, line, column)
-        super("#{message} (#{line}:#{column})")
-      end
-    end
-
     class Token
       attr_reader :type, :value, :line, :column, :meta
 
@@ -30,10 +24,9 @@ module KDL
       def to_s
         "#{value.inspect} (#{line}:#{column})"
       end
-      alias inspect to_s
     end
 
-    attr_reader :index
+    attr_reader :index, :filename
 
     SYMBOLS = {
       '{' => :LBRACE,
@@ -72,13 +65,14 @@ module KDL
 
     VERSION_PATTERN = /\A\/-[#{WHITESPACE.join}]*kdl-version[#{WHITESPACE.join}]+(\d+)[#{WHITESPACE.join}]*[#{NEWLINES.join}]/
 
-    def initialize(str, start = 0)
+    def initialize(str, start = 0, filename: nil)
       @str = debom(str)
-      @context = nil
-      @rawstring_hashes = nil
       @start = start
       @index = start
       @buffer = +""
+      @filename = filename
+      @context = nil
+      @rawstring_hashes = nil
       @done = false
       @previous_context = nil
       @line = 1
@@ -201,7 +195,7 @@ module KDL
               traverse(1)
             end
           when '\\'
-            t = Tokenizer.new(@str, @index + 1)
+            t = Tokenizer.new(@str, @index + 1, filename:)
             la = t.next_token
             if la[0] == :NEWLINE || la[0] == :EOF || (la[0] == :WS && (lan = t.next_token[0]) == :NEWLINE || lan == :EOF)
               traverse_to(t.index)
@@ -433,7 +427,7 @@ module KDL
             @comment_nesting = 1
             traverse(2)
           elsif c == "\\"
-            t = Tokenizer.new(@str, @index + 1)
+            t = Tokenizer.new(@str, @index + 1, filename:)
             la = t.next_token
             if la[0] == :NEWLINE || la[0] == :EOF || (la[0] == :WS && (lan = t.next_token[0]) == :NEWLINE || lan == :EOF)
               traverse_to(t.index)
@@ -446,7 +440,7 @@ module KDL
             return token(:WS, -@buffer)
           end
         when :equals
-          t = Tokenizer.new(@str, @index)
+          t = Tokenizer.new(@str, @index, filename:)
           la = t.next_token
           if la[0] == :WS
             @buffer << la[1].value
@@ -488,9 +482,9 @@ module KDL
 
     def raise_error(error)
       case error
-      when String then raise Error.new(error, @line, @column)
+      when String then raise ParseError.new(error, @filename, @line, @column)
       when Error then raise error
-      else raise Error.new(error.message, @line, @column)
+      else raise ParseError.new(error.message, @filename, @line, @column)
       end
     end
 
