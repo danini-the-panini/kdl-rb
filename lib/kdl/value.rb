@@ -167,7 +167,7 @@ module KDL
       when ::Float then Float.new(value)
       when TrueClass, FalseClass then Boolean.new(value)
       when NilClass then Null
-      else raise Error("Unsupported value type: #{value.class}")
+      else raise Error, "Unsupported value type: #{value.class}"
       end
     end
   end
