@@ -33,5 +33,47 @@ class BuilderTest < Minitest::Test
       pokemon snorlax jigglypuff "Pokemon type"=normal level=10 trainer=Sylphrena
     KDL
   end
+
+  def test_implicit_block
+    doc = KDL.build do
+      node "foo"
+      node "bar", type: "baz"
+      node "qux" do
+        arg 123
+        prop "norf", "wat"
+        prop "when", "2025-01-30", type: "date"
+        node "child"
+      end
+    end
+
+    assert_equal <<~KDL, doc.to_s
+      foo
+      (baz)bar
+      qux 123 norf=wat when=(date)"2025-01-30" {
+          child
+      }
+    KDL
+  end
+
+  def test_magic_nodes
+    doc = KDL.build do
+      foo
+      bar type: "baz"
+      qux do
+        arg 123
+        prop "norf", "wat"
+        prop "when", "2025-01-30", type: "date"
+        _ "child"
+      end
+    end
+
+    assert_equal <<~KDL, doc.to_s
+      foo
+      (baz)bar
+      qux 123 norf=wat when=(date)"2025-01-30" {
+          child
+      }
+    KDL
+  end
   
 end

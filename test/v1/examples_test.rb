@@ -9,7 +9,7 @@ class KDL::V1::ExamplesTest < Minitest::Test
 
   def test_ci
     doc = ::KDL.load_file(example_path('ci'))
-    nodes = nodes! {
+    nodes = KDL.build {
       name "CI"
       on "push", "pull_request"
       env {
@@ -58,7 +58,7 @@ class KDL::V1::ExamplesTest < Minitest::Test
 
   def test_cargo
     doc = ::KDL.load_file(example_path('Cargo'))
-    nodes = nodes! {
+    nodes = KDL.build {
       package {
         name "kdl"
         version "0.0.0"

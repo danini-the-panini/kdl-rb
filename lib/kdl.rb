@@ -61,8 +61,13 @@ module KDL
 
   def self.build(&block)
     builder = Builder.new
-    builder.document do
-      yield builder
+    if block.arity >= 1
+      builder.document do
+        yield builder
+      end
+    else
+      builder.instance_exec(&block)
+      builder.document
     end
   end
 end

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module KDL
-  class Builder
+  class Builder < BasicObject
     class Error < ::KDL::Error; end
 
     def initialize
@@ -10,16 +10,16 @@ module KDL
     end
 
     def document(&block)
-      yield
+      yield if block
       @document
     end
 
-    def node(name, *args, type: nil, **props, &block)
-      node = Node.new(name, type:)
-      @nesting << node
+    def node(name = nil, *args, type: nil, **props, &block)
+      n = Node.new(name&.to_s || "node", type:)
+      @nesting << n
       args.each do |value|
         case value
-        when Hash
+        when ::Hash
           value.each { |k, v| prop k, v }
         else arg value
         end
@@ -27,21 +27,22 @@ module KDL
       props.each do |key, value|
         prop key, value
       end
-      yield if block_given?
+      yield if block
       @nesting.pop
       if parent = current_node
-        parent.children << node
+        parent.children << n
       else
-        @document << node
+        @document << n
       end
-      node
+      n
     end
+    alias _ node
 
     def arg(value, type: nil)
-      if node = current_node
+      if n = current_node
         val = Value.from(value)
         val = val.as_type(type) if type
-        node.arguments << val
+        n.arguments << val
         val
       else
         raise Error, "Can't do argument, not inside Node"
@@ -50,14 +51,22 @@ module KDL
 
     def prop(key, value, type: nil)
       key = key.to_s
-      if node = current_node
+      if n = current_node
         val = Value.from(value)
         val = val.as_type(type) if type
-        node.properties[key] = val
+        n.properties[key] = val
         val
       else
         raise Error, "Can't do property, not inside Node"
       end
+    end
+
+    def method_missing(name, *args, **props, &block)
+      node name, *args, **props, &block
+    end
+
+    def respond_to_missing?(*args)
+      true
     end
 
     private
