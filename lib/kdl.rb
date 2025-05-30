@@ -23,28 +23,30 @@ module KDL
     parse(input, **options)
   end
 
-  def self.parse(input, version: default_version, output_version: default_output_version, **options)
+  def self.parse(input, version: default_version, output_version: default_output_version, filename: nil, **options)
     case version
     when 2
-      Parser.new(output_module: output_module(output_version || 2), **options).parse(input)
+      Parser.new(output_module: output_module(output_version || 2), **options).parse(input, filename:)
     when 1
-      V1::Parser.new.parse(input, output_module: output_module(output_version || 1), **options)
+      V1::Parser.new.parse(input, output_module: output_module(output_version || 1), filename:, **options)
     when nil
       auto_parse(input, output_version:, **options)
     else
-      raise UnsupportedVersionError.new("Unsupported version '#{version}'", version)
+      raise UnsupportedVersionError.new("unsupported version '#{version}'", version)
     end
   end
 
   def self.load_file(filespec, **options)
-    parse(File.read(filespec, encoding: Encoding::UTF_8), **options)
+    File.open(filespec, 'r:BOM|UTF-8') do |file|
+      parse(file.read, **options, filename: file.to_path)
+    end
   end
 
   def self.auto_parse(input, output_version: default_output_version, **options)
     parse(input, version: 2, output_version: output_version || 2, **options)
   rescue VersionMismatchError => e
     parse(input, version: e.version, output_version: output_version || e.version, **options)
-  rescue Tokenizer::Error, Racc::ParseError => e
+  rescue ParseError => e
     parse(input, version: 1, output_version: output_version || 1, **options) rescue raise e
   end
 
@@ -53,7 +55,7 @@ module KDL
     when 1 then KDL::V1
     when 2 then KDL
     else
-      warn "Unknown output_version `#{version}', defaulting to v2"
+      warn "[WARNING] Unknown output_version '#{version}', defaulting to v2"
       KDL
     end
   end
