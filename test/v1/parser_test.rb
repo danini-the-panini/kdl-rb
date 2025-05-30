@@ -276,7 +276,7 @@ class KDL::V1::ParserTest < Minitest::Test
 
   def test_basic
     doc = @parser.parse('title "Hello, World"')
-    nodes = nodes! {
+    nodes = KDL.build {
       title "Hello, World"
     }
     assert_equal nodes, doc
@@ -284,7 +284,7 @@ class KDL::V1::ParserTest < Minitest::Test
 
   def test_multiple_values
     doc = @parser.parse('bookmarks 12 15 188 1234')
-    nodes = nodes! {
+    nodes = KDL.build {
       bookmarks 12, 15, 188, 1234
     }
     assert_equal nodes, doc
@@ -295,7 +295,7 @@ class KDL::V1::ParserTest < Minitest::Test
       author "Alex Monad" email="alex@example.com" active=true
       foo bar=true "baz" quux=false 1 2 3
     KDL
-    nodes = nodes! {
+    nodes = KDL.build {
       author "Alex Monad", email: "alex@example.com", active: true
       foo "baz", 1, 2, 3, bar: true, quux: false
     }
@@ -311,7 +311,7 @@ class KDL::V1::ParserTest < Minitest::Test
         }
       }
     KDL
-    nodes = nodes! {
+    nodes = KDL.build {
       contents {
         section("First section") {
           paragraph "This is the first paragraph"
@@ -324,7 +324,7 @@ class KDL::V1::ParserTest < Minitest::Test
 
   def test_semicolon
     doc = @parser.parse('node1; node2; node3;')
-    nodes = nodes! {
+    nodes = KDL.build {
       node1; node2; node3;
     }
     assert_equal nodes, doc
@@ -332,14 +332,14 @@ class KDL::V1::ParserTest < Minitest::Test
 
   def test_raw_strings
     doc = @parser.parse <<~KDL
-      node "this\\nhas\\tescapes"
-      other r"C:\\Users\\zkat\\"
-      other-raw r#"hello"world"#
+      foo "this\\nhas\\tescapes"
+      bar r"C:\\Users\\zkat\\"
+      baz r#"hello"world"#
     KDL
-    nodes = nodes! {
-      node "this\nhas\tescapes"
-      other "C:\\Users\\zkat\\"
-      _ 'other-raw', "hello\"world"
+    nodes = KDL.build {
+      foo "this\nhas\tescapes"
+      bar "C:\\Users\\zkat\\"
+      baz "hello\"world"
     }
     assert_equal nodes, doc
   end
@@ -350,7 +350,7 @@ class KDL::V1::ParserTest < Minitest::Test
       multiline
       value"
     KDL
-    nodes = nodes! {
+    nodes = KDL.build {
       string "my\nmultiline\nvalue"
     }
     assert_equal nodes, doc
@@ -364,7 +364,7 @@ class KDL::V1::ParserTest < Minitest::Test
       my-binary 0b10101101
       bignum 1_000_000
     KDL
-    nodes = nodes! {
+    nodes = KDL.build {
       num 1.234e-42
       _ 'my-hex', 0xdeadbeef
       _ 'my-octal', 0o755
@@ -388,7 +388,7 @@ class KDL::V1::ParserTest < Minitest::Test
       hello
       */*/
     KDL
-    nodes = nodes! {
+    nodes = KDL.build {
       tag bar: false
     }
     assert_equal nodes, doc
@@ -408,7 +408,7 @@ class KDL::V1::ParserTest < Minitest::Test
       }
     KDL
 
-    nodes = nodes! {
+    nodes = KDL.build {
       mynode("not commented") {
       }
     }
@@ -423,7 +423,7 @@ class KDL::V1::ParserTest < Minitest::Test
       my-node 1 2 \\  // comments are ok after \\
               3 4
     KDL
-    nodes = nodes! {
+    nodes = KDL.build {
       title "Some title"
       _ "my-node", 1, 2, 3, 4
     }
@@ -448,7 +448,7 @@ class KDL::V1::ParserTest < Minitest::Test
       foo123~!@#$%^&*.:'|?+ "weeee"
       - 1
     KDL
-    nodes = nodes! {
+    nodes = KDL.build {
       _ "!@#$@$%Q#$%~@!40", "1.2.3", "!!!!!": true
       _ "foo123~!@#$%^&*.:'|?+", "weeee"
       _ "-", 1
@@ -461,7 +461,7 @@ class KDL::V1::ParserTest < Minitest::Test
       node1 "\\u{1f600}"
       node2 "\\n\\t\\r\\\\\\"\\f\\b"
     KDL
-    nodes = nodes! {
+    nodes = KDL.build {
       node1 "😀"
       node2 "\n\t\r\\\"\f\b"
     }
