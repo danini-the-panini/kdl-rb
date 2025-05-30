@@ -75,5 +75,19 @@ class BuilderTest < Minitest::Test
       }
     KDL
   end
+
+  def test_failures
+    assert_raises do
+      KDL.build do |kdl|
+        kdl.prop foo: "bar"
+      end
+    end
+
+    assert_raises do
+      KDL.build do |kdl|
+        kdl.arg "asdf"
+      end
+    end
+  end
   
 end

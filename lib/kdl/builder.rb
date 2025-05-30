@@ -65,10 +65,6 @@ module KDL
       node name, *args, **props, &block
     end
 
-    def respond_to_missing?(*args)
-      true
-    end
-
     private
 
     def current_node
