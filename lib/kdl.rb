@@ -10,6 +10,7 @@ require "kdl/string_dumper"
 require "kdl/types"
 require "kdl/parser_common"
 require "kdl/kdl.tab"
+require "kdl/builder"
 require "kdl/v1"
 
 module KDL
@@ -57,6 +58,18 @@ module KDL
     else
       warn "[WARNING] Unknown output_version '#{version}', defaulting to v2"
       KDL
+    end
+  end
+
+  def self.build(&block)
+    builder = Builder.new
+    if block.arity >= 1
+      builder.document do
+        yield builder
+      end
+    else
+      builder.instance_exec(&block)
+      builder.document
     end
   end
 end
