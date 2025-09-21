@@ -417,6 +417,8 @@ module KDL
             if @comment_nesting == 0
               revert_context
             end
+          elsif c.nil?
+            raise_error "Unterminated multiline comment"
           else
             traverse(1)
           end

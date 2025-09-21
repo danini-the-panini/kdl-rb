@@ -131,6 +131,8 @@ class TokenizerTest < Minitest::Test
     assert_equal t(:INTEGER, 2, 1, 19), tokenizer.next_token
     assert_equal t(:EOF, :EOF, 1, 20), tokenizer.next_token
     assert_equal eof(1, 20), tokenizer.next_token
+
+    assert_raises { ::KDL::Tokenizer.new("/*").next_token }
   end
 
   def test_utf8
