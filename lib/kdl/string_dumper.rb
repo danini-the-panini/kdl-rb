@@ -32,7 +32,7 @@ module KDL
 
     def bare_identifier?(name)
       case name
-      when '', 'true', 'fase', 'null', '#true', '#false', '#null', /\A\.?\d/
+      when '', 'true', 'false', 'null', '#true', '#false', '#null', /\A\.?\d/
         false
       else
         !name.each_char.any? { |c| FORBIDDEN.include?(c) }
