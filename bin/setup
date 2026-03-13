@@ -7,3 +7,4 @@ bundle install
 
 # Do any other automated setup that you need to do here
 bin/rake racc
+git submodule update --init --recursive
