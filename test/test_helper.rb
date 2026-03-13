@@ -11,4 +11,7 @@ SimpleCov.start
 $LOAD_PATH.unshift File.expand_path("../lib", __dir__)
 require "kdl"
 
+require 'minitest'
+Minitest.load_plugins
+
 require "minitest/autorun"
